@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from "react";
 import { Renderer, Program, Mesh, Triangle } from "ogl";
-import HeaderSetup from "../../components/CpnHomePage/HeaderSetup";
 
 interface LiquidChromeProps extends React.HTMLAttributes<HTMLDivElement> {
   baseColor?: [number, number, number];
@@ -175,19 +174,16 @@ export const LiquidChrome: React.FC<LiquidChromeProps> = ({
       ref={containerRef}
       className="w-full h-full"
       style={{
-        position: "relative",
+        position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
-        height: "100vh",
-        pointerEvents: interactive ? "auto" : "none",
+        height: "100%",
+        pointerEvents: "auto",
+        zIndex: 1,
       }}
       {...props}
-    >
-      <div className="absolute top-5 left-105 w-full z-100 p-4 bg-black/50 h-10 max-w-150 rounded-2xl border-1 border-black-200 cursor-pointer">
-        <HeaderSetup />
-      </div>
-    </div>
+    ></div>
   );
 };
 

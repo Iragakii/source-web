@@ -1,0 +1,40 @@
+import Description from "../Title/Description";
+import TitleBrand from "../Title/TitleBrand";
+import ButtonOne from "../TwoButton/ButtonOne";
+import LightRays from "./LightRays";
+
+const BackGroundTwo = () => {
+  return (
+    <div style={{ width: "100%", height: "100vh", position: "relative" }}>
+      <LightRays
+        raysOrigin="top-center"
+        raysColor="#ffffff"
+        raysSpeed={1.5}
+        lightSpread={0.8}
+        rayLength={1.2}
+        followMouse={true}
+        mouseInfluence={0.1}
+        noiseAmount={0.1}
+        distortion={0.05}
+        className="custom-rays"
+      />
+      <div
+        className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-4xl"
+        style={{ pointerEvents: "auto" }}
+      >
+        <div className="text-center">
+          <TitleBrand />
+          {/* Button positioned directly under title with left alignment */}
+          <div className="!mt-5 sm:mt-30 lg:mt-20 absolute left-1/4">
+            <Description />
+          </div>
+          <div className="!mt-30 sm:mt-30 lg:mt-20 absolute left-1/3">
+            <ButtonOne />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BackGroundTwo;
