@@ -62,7 +62,7 @@ body::-webkit-scrollbar {
 
 @keyframes shine-left-to-right {
   0% {
-    background-position: 0% 0%;
+    background-position: -200% 0%;
   }
   100% {
     background-position: 200% 0%;
@@ -71,7 +71,7 @@ body::-webkit-scrollbar {
 
 @keyframes shine-right-to-left {
   0% {
-    background-position: 0% 0%;
+    background-position: 200% 0%;
   }
   100% {
     background-position: -200% 0%;
@@ -90,12 +90,12 @@ body::-webkit-scrollbar {
 
 .shine-line-left {
   background: linear-gradient(90deg, transparent 0%, #ffffff 50%, #dddeab 100%);
-  background-size: 300% 100%;
+  background-size: 100% 100%;
   animation: shine-right-to-left 3s linear infinite;
 }
 
 .shine-line-right {
   background: linear-gradient(90deg, #dddeab 0%, #ffffff 50%, transparent 100%);
-  background-size: 300% 100%;
+  background-size: 100% 100%;
   animation: shine-left-to-right 3s linear infinite;
 }
