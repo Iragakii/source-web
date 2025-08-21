@@ -10,12 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.3",
+    "@react-three/fiber": "^9.3.0",
     "@tailwindcss/postcss": "^4.1.12",
     "ogl": "^1.0.11",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-masonry-css": "^1.0.16",
     "react-router-dom": "^7.8.1",
+    "react-three": "^0.9.7",
     "remixicon": "^4.6.0"
   },
   "devDependencies": {
