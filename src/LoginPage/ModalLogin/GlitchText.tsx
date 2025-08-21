@@ -22,7 +22,7 @@ const GlitchText = ({ text, className = "" }: GlitchTextProps) => {
       setGlitchedText(
         originalText
           .split("")
-          .map((char, index) => {
+          .map((_, index) => {
             if (index < iterations) {
               return originalText[index];
             }
