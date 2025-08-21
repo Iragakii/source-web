@@ -30,3 +30,72 @@ body::-webkit-scrollbar {
   min-height: 100vh;
   position: relative;
 }
+
+/* Masonry CSS for react-masonry-css */
+.my-masonry-grid {
+  display: -webkit-box; /* Not needed if autoprefixing */
+  display: -ms-flexbox; /* Not needed if autoprefixing */
+  display: flex;
+  margin-left: -16px; /* gutter size offset */
+  width: auto;
+}
+
+.my-masonry-grid_column {
+  padding-left: 16px; /* gutter size */
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.my-masonry-grid_column > div {
+  margin-bottom: 16px;
+}
+
+/* Shine animation keyframes */
+@keyframes shine {
+  0% {
+    background-position: 100%;
+  }
+  100% {
+    background-position: -100%;
+  }
+}
+
+@keyframes shine-left-to-right {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+@keyframes shine-right-to-left {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: -200% 0%;
+  }
+}
+
+.shine-text {
+  background: linear-gradient(120deg, #dddad0 40%, #ffffff 50%, #dddad0 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shine 3s linear infinite;
+}
+
+.shine-line-left {
+  background: linear-gradient(90deg, transparent 0%, #ffffff 50%, #dddeab 100%);
+  background-size: 300% 100%;
+  animation: shine-right-to-left 3s linear infinite;
+}
+
+.shine-line-right {
+  background: linear-gradient(90deg, #dddeab 0%, #ffffff 50%, transparent 100%);
+  background-size: 300% 100%;
+  animation: shine-left-to-right 3s linear infinite;
+}

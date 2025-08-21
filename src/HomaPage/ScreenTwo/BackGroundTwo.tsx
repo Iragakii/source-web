@@ -1,7 +1,6 @@
-import Description from "../Title/Description";
-import TitleBrand from "../Title/TitleBrand";
-import ButtonOne from "../TwoButton/ButtonOne";
+import MediaGrid from "./CardCPN/Mansory/CardGird";
 import LightRays from "./LightRays";
+import TitleTwo from "./TitleTwo";
 
 const BackGroundTwo = () => {
   return (
@@ -19,19 +18,17 @@ const BackGroundTwo = () => {
         className="custom-rays"
       />
       <div
-        className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-4xl"
+        className="absolute top-1/15 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-4xl"
         style={{ pointerEvents: "auto" }}
       >
         <div className="text-center">
-          <TitleBrand />
-          {/* Button positioned directly under title with left alignment */}
-          <div className="!mt-5 sm:mt-30 lg:mt-20 absolute left-1/4">
-            <Description />
-          </div>
-          <div className="!mt-30 sm:mt-30 lg:mt-20 absolute left-1/3">
-            <ButtonOne />
-          </div>
+          <TitleTwo />
         </div>
+      </div>
+
+      {/* MediaGrid component for displaying media cards */}
+      <div className="absolute top-1/6 left-0 right-0 bottom-0 z-40">
+        <MediaGrid />
       </div>
     </div>
   );

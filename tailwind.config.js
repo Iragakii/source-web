@@ -16,6 +16,7 @@ export default {
         "star-movement-top": "star-movement-top linear infinite alternate",
         "border-beam": "border-beam 2s linear infinite",
         "border-spin": "border-spin 3s linear infinite",
+        shine: "shine 5s linear infinite",
       },
       keyframes: {
         "star-movement-bottom": {
@@ -41,6 +42,10 @@ export default {
           "100%": {
             transform: "rotate(360deg)",
           },
+        },
+        shine: {
+          "0%": { "background-position": "100%" },
+          "100%": { "background-position": "-100%" },
         },
       },
     },
