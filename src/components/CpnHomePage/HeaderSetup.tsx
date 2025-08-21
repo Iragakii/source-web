@@ -9,7 +9,7 @@ const HeaderSetup = () => {
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center justify-between w-full text-white/80 font-medium">
         <div className="flex gap-4 lg:gap-6 xl:gap-10 ">
-          <Link to="#">
+          <Link to="/">
             <button className="hover:text-white cursor-pointer transition-colors duration-200 px-2 py-1">
               <span>Home</span>
             </button>
@@ -30,18 +30,22 @@ const HeaderSetup = () => {
             </button>
           </Link>
         </div>
-        <div className="hover:text-[#7ADAA5] transition-colors duration-200 text-xl cursor-pointer">
-          <i className="ri-user-6-fill"></i>
-        </div>
+        <Link to="/login">
+          <button className="hover:text-[#7ADAA5] transition-colors duration-200 text-xl cursor-pointer">
+            <i className="ri-user-6-fill"></i>
+          </button>
+        </Link>
       </div>
 
       {/* Mobile Navigation */}
       <div className="md:hidden flex items-center justify-between w-full text-white/80">
         <div className="text-lg font-semibold">Symphony</div>
         <div className="flex items-center gap-4">
-          <div className="hover:text-[#7ADAA5] transition-colors duration-200 text-xl cursor-pointer">
-            <i className="ri-user-6-fill"></i>
-          </div>
+          <Link to="/login">
+            <button className="hover:text-[#7ADAA5] transition-colors duration-200 text-xl cursor-pointer">
+              <i className="ri-user-6-fill"></i>
+            </button>
+          </Link>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="text-xl hover:text-white transition-colors duration-200"
@@ -57,7 +61,7 @@ const HeaderSetup = () => {
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-black/80 backdrop-blur-sm rounded-lg border border-gray-700 md:hidden">
           <div className="flex flex-col p-4 space-y-3">
-            <Link to="#" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
               <button className="hover:text-white cursor-pointer transition-colors duration-200 text-left w-full py-2">
                 <span>Home</span>
               </button>
