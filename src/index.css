@@ -88,6 +88,16 @@ body::-webkit-scrollbar {
   animation: shine 3s linear infinite;
 }
 
+.shine-text-green {
+  background: linear-gradient(120deg, #aec8a4 40%, #ffffff 50%, #aec8a4 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shine 3s linear infinite;
+}
+
 .shine-line-left {
   background: linear-gradient(90deg, transparent 0%, #ffffff 50%, #dddeab 100%);
   background-size: 100% 100%;
@@ -109,4 +119,161 @@ body::-webkit-scrollbar {
 }
 Canvas {
   height: 100vh;
+}
+.font-cer {
+  font-family: monospace;
+}
+
+.icon-stack-container {
+  position: relative;
+  width: 107px;
+  height: 55px;
+  isolation: isolate;
+}
+.right-icon-group {
+  right: -20px;
+  position: relative;
+}
+.left-icon-group {
+  left: -19px;
+  position: relative;
+}
+.stack-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease-in-out;
+  will-change: transform, z-index;
+  transform-origin: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.stack-icon.youtube {
+  width: 39px;
+  height: 39px;
+  background: white;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+}
+
+.stack-icon.youtube:hover {
+  transform: translateX(-50%) scale(1.15);
+}
+
+.stack-icon.instagram {
+  width: 20px;
+  height: 20px;
+  background: #1f7d53;
+  top: 19px;
+  left: 0;
+  z-index: 300;
+}
+
+.stack-icon.twitter {
+  width: 27px;
+  height: 27px;
+  background: #27391c;
+  top: 11px;
+  left: 13px;
+  z-index: 350;
+}
+
+.stack-icon.threads {
+  width: 34px;
+  height: 34px;
+  background: #18230f;
+  top: 5px;
+  left: 34px;
+  z-index: 400;
+}
+
+.stack-icon.tiktok {
+  width: 34px;
+  height: 34px;
+  background: #222222;
+  top: 5px;
+  right: 34px;
+  z-index: 400;
+}
+
+.stack-icon.wordpress {
+  width: 27px;
+  height: 27px;
+  background: linear-gradient(180deg, #7b2cbf 0%, #ff4f03 100%);
+  top: 11px;
+  right: 13px;
+  z-index: 350;
+}
+
+.stack-icon.word {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(180deg, #ec4899 0%, #153885 100%);
+  top: 19px;
+  right: 0;
+  z-index: 300;
+}
+
+.stack-icon:hover {
+  z-index: 1000 !important;
+  transform: scale(1.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.icon-group {
+  gap: 0;
+  transition: all 0.5s ease-in-out;
+}
+
+.icon-group-spaced {
+  gap: 20px !important;
+}
+
+.icon-group-stacked {
+  gap: 0 !important;
+}
+
+.left-group-animate .stack-icon.instagram {
+  left: -47px;
+}
+
+.left-group-animate .stack-icon.twitter {
+  left: -14px;
+}
+
+.left-group-animate .stack-icon.threads {
+  left: 24px;
+}
+
+.right-group-animate .stack-icon.tiktok {
+  right: 24px;
+}
+
+.right-group-animate .stack-icon.wordpress {
+  right: -14px;
+}
+
+.right-group-animate .stack-icon.word {
+  right: -47px;
+}
+
+.left-group-animate {
+  transform: translateX(-20px) !important;
+}
+
+.right-group-animate {
+  transform: translateX(20px) !important;
+}
+.stack-icon {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.button-moved img {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease-in-out;
 }

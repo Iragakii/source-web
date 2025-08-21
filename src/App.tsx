@@ -2,6 +2,7 @@ import BackGround from "./HomaPage/BackGroundPageOne/BackGround";
 import "remixicon/fonts/remixicon.css";
 import BackGroundTwo from "./HomaPage/ScreenTwo/BackGroundTwo";
 import BackGroundThree from "./HomaPage/ScreenThree/BackGroundThree";
+import BackgroundFooter from "./HomaPage/ScreenFooter/BackgroundFooter";
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
       </section>
       <section className="w-full h-screen relative">
         <BackGroundThree />
+      </section>
+      <section className="w-full h-screen relative">
+        <BackgroundFooter />
       </section>
     </div>
   );
