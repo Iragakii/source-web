@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BackGroundLogin from "./BackGroundLogin";
+import { authService } from "../services/authService";
+import { useNotification } from "../contexts/NotificationContext";
 
 const SignUpPage = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(true);
   const [errors, setErrors] = useState<{
     username?: string;
     email?: string;
     password?: string;
     confirmPassword?: string;
+    general?: string;
   }>({});
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const validateForm = () => {
     const newErrors: {
@@ -51,17 +57,69 @@ const SignUpPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Sign up submitted:", { username, email, password });
-      alert(`Account created successfully! Welcome ${username}!`);
-      // You can redirect to login or dashboard here
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const result = await authService.register({
+        username,
+        email,
+        password,
+        confirmPassword,
+      });
+
+      if (result.success && result.data?.user) {
+        showNotification(`Account created successfully! Welcome ${result.data.user.username}!`, 'success');
+        // Redirect to login page with success message
+        navigate("/login?openModal=true");
+      } else {
+        // Handle validation errors from server
+        if (result.errors && result.errors.length > 0) {
+          const serverErrors: any = {};
+          result.errors.forEach((error) => {
+            if (error.toLowerCase().includes("username")) {
+              serverErrors.username = error;
+            } else if (error.toLowerCase().includes("email")) {
+              serverErrors.email = error;
+            } else if (error.toLowerCase().includes("password")) {
+              serverErrors.password = error;
+            } else {
+              serverErrors.general = error;
+            }
+          });
+          setErrors(serverErrors);
+        } else {
+          setErrors({
+            general: result.message || "Registration failed. Please try again.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setErrors({
+        general: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleClose = () => {
-    navigate("/");
+    // Clear form and errors, then hide the form
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setErrors({});
+    setIsFormVisible(false);
+  };
+
+  const handleShowForm = () => {
+    setIsFormVisible(true);
   };
 
   return (
@@ -78,7 +136,8 @@ const SignUpPage = () => {
         </div>
 
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="relative bg-black/90 border-2 border-[#61b3dc] rounded-lg p-16 w-full max-w-2xl mx-4 shadow-2xl shadow-[#61b3dc]/20 z-20">
+          {isFormVisible ? (
+            <div className="relative bg-black/90 border-2 border-[#61b3dc] rounded-lg p-16 w-full max-w-2xl mx-4 shadow-2xl shadow-[#61b3dc]/20 z-20">
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 text-[#61b3dc] hover:text-[#61dca3] cursor-pointer text-xl font-mono transition-colors duration-300"
@@ -90,6 +149,12 @@ const SignUpPage = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {errors.general && (
+                <div className="bg-red-500/10 border border-red-500 rounded p-3 mb-4">
+                  <p className="text-red-500 text-sm font-mono">{errors.general}</p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-[#61b3dc] font-mono text-[18px] !mb-2">
                   &gt; USERNAME:
@@ -102,11 +167,12 @@ const SignUpPage = () => {
                     if (errors.username)
                       setErrors({ ...errors, username: undefined });
                   }}
+                  disabled={isLoading}
                   className={`w-full bg-transparent border rounded px-4 !mb-4 !py-2 text-[#61b3dc] font-mono transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-[#61b3dc] ${
                     errors.username
                       ? "border-red-500"
                       : "border-[#2b4539] focus:border-[#61b3dc]"
-                  }`}
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   placeholder="Choose username..."
                 />
                 {errors.username && (
@@ -128,11 +194,12 @@ const SignUpPage = () => {
                     if (errors.email)
                       setErrors({ ...errors, email: undefined });
                   }}
+                  disabled={isLoading}
                   className={`w-full bg-transparent border rounded px-4 !mb-4 !py-2  text-[#61b3dc] font-mono transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-[#61b3dc] ${
                     errors.email
                       ? "border-red-500"
                       : "border-[#2b4539] focus:border-[#61b3dc]"
-                  }`}
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   placeholder="Enter email address..."
                 />
                 {errors.email && (
@@ -154,11 +221,12 @@ const SignUpPage = () => {
                     if (errors.password)
                       setErrors({ ...errors, password: undefined });
                   }}
+                  disabled={isLoading}
                   className={`w-full bg-transparent border rounded px-4 !mb-2 !py-2 text-[#61b3dc] font-mono transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-[#61b3dc] ${
                     errors.password
                       ? "border-red-500"
                       : "border-[#2b4539] focus:border-[#61b3dc]"
-                  }`}
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   placeholder="Create password..."
                 />
                 {errors.password && (
@@ -183,11 +251,12 @@ const SignUpPage = () => {
                     if (errors.confirmPassword)
                       setErrors({ ...errors, confirmPassword: undefined });
                   }}
+                  disabled={isLoading}
                   className={`w-full bg-transparent border rounded px-4 !mb-2 !py-2 text-[#61b3dc] font-mono transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-[#61b3dc] ${
                     errors.confirmPassword
                       ? "border-red-500"
                       : "border-[#2b4539] focus:border-[#61b3dc]"
-                  }`}
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   placeholder="Confirm password..."
                 />
                 {errors.confirmPassword && (
@@ -203,14 +272,22 @@ const SignUpPage = () => {
               <div className="space-y-4 mt-8">
                 <button
                   type="submit"
-                  className="w-full bg-transparent border-2 border-[#61b3dc] text-[#61b3dc] font-mono py-4 h-10 rounded hover:bg-[#61b3dc] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
+                  disabled={isLoading}
+                  className={`w-full bg-transparent border-2 border-[#61b3dc] text-[#61b3dc] font-mono py-4 h-10 rounded hover:bg-[#61b3dc] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 >
-                  [ CREATE ACCOUNT ]
+                  {isLoading ? "[ CREATING ACCOUNT... ]" : "[ CREATE ACCOUNT ]"}
                 </button>
 
                 <div className="text-center">
                   <Link to="/login?openModal=true" className="">
-                    <button className=" text-[#61dca3] font-mono text-sm hover:text-[#61b3dc] w-full bg-transparent border-2 border-[#61dca3]  font-mono py-4 h-8 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105">
+                    <button 
+                      disabled={isLoading}
+                      className={`text-[#61dca3] font-mono text-sm hover:text-[#61b3dc] w-full bg-transparent border-2 border-[#61dca3] font-mono py-4 h-8 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+                        isLoading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
                       Already have an account? [ LOGIN ]
                     </button>
                   </Link>
@@ -218,9 +295,20 @@ const SignUpPage = () => {
               </div>
             </form>
 
-            {/* Glowing effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#61b3dc]/20 via-[#61dca3]/20 to-[#61b3dc]/20 rounded-lg blur opacity-30 animate-pulse pointer-events-none -z-10"></div>
-          </div>
+              {/* Glowing effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#61b3dc]/20 via-[#61dca3]/20 to-[#61b3dc]/20 rounded-lg blur opacity-30 animate-pulse pointer-events-none -z-10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center space-y-6">
+              
+              <button
+                onClick={handleShowForm}
+                className="bg-transparent border-2 border-[#61b3dc] text-[#61b3dc] font-mono py-4 px-8 rounded hover:bg-[#61b3dc] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
+              >
+                [ OPEN REGISTRATION FORM ]
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </div>

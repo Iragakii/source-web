@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
+import { useNotification } from "../../contexts/NotificationContext";
 
 interface SimpleModalLoginProps {
   isOpen: boolean;
@@ -9,10 +11,13 @@ interface SimpleModalLoginProps {
 const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [errors, setErrors] = useState<{
     username?: string;
     password?: string;
+    general?: string;
   }>({});
 
   const validateForm = () => {
@@ -32,12 +37,33 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Form submitted:", { username, password });
-      alert(`Login successful! Username: ${username}`);
-      onClose();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const result = await authService.login({ username, password });
+      
+      if (result.success && result.data?.user) {
+        showNotification(`Login successful! Welcome back, ${result.data.user.username}!`, 'success');
+        onClose();
+        // Redirect to homepage after successful login
+        navigate('/');
+      } else {
+        setErrors({ 
+          general: result.message || "Login failed. Please try again." 
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrors({ 
+        general: "An unexpected error occurred. Please try again." 
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,6 +87,12 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {errors.general && (
+            <div className="bg-red-500/10 border border-red-500 rounded p-3 mb-4">
+              <p className="text-red-500 text-sm font-mono">{errors.general}</p>
+            </div>
+          )}
+
           <div>
             <label className="block text-[#61dca3] font-mono text-[18px] !mb-2">
               &gt; USERNAME:
@@ -73,11 +105,12 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
                 if (errors.username)
                   setErrors({ ...errors, username: undefined });
               }}
+              disabled={isLoading}
               className={`w-full bg-transparent border rounded px-4 !mb-4 !py-2 text-[#61dca3] font-mono transition-all duration-300 ${
                 errors.username
                   ? "border-red-500"
                   : "border-[#2b4539] focus:border-[#61dca3]"
-              }`}
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               placeholder="Enter username..."
             />
             {errors.username && (
@@ -99,11 +132,12 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
                 if (errors.password)
                   setErrors({ ...errors, password: undefined });
               }}
+              disabled={isLoading}
               className={`w-full bg-transparent border rounded px-4  !mb-3 !py-2 text-[#61dca3] font-mono transition-all duration-300 ${
                 errors.password
                   ? "border-red-500"
                   : "border-[#2b4539] focus:border-[#61dca3]"
-              }`}
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               placeholder="Enter password..."
             />
             {errors.password && (
@@ -119,15 +153,21 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
           <div className="space-y-4 ">
             <button
               type="submit"
-              className="w-full bg-transparent border-2 border-[#61dca3] text-[#61dca3] font-mono py-4 h-10 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
+              disabled={isLoading}
+              className={`w-full bg-transparent border-2 border-[#61dca3] text-[#61dca3] font-mono py-4 h-10 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              [ LOGIN ]
+              {isLoading ? "[ LOGGING IN... ]" : "[ LOGIN ]"}
             </button>
 
             <button
               type="button"
               onClick={handleSignUp}
-              className="w-full bg-transparent border-2 border-[#61b3dc] text-[#61b3dc] font-mono py-4 h-10 rounded hover:bg-[#61b3dc] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
+              disabled={isLoading}
+              className={`w-full bg-transparent border-2 border-[#61b3dc] text-[#61b3dc] font-mono py-4 h-10 rounded hover:bg-[#61b3dc] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               [ SIGN UP ]
             </button>
