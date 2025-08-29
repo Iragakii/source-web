@@ -22,7 +22,7 @@ const JoinCourse = () => {
         <section className='className="w-full h-full bg-black relative">'>
             
             <BackgroundJoin></BackgroundJoin>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-8">
+                <div className="absolute top-1/8 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-8">
                   <div className="">
                      <TitleCourse />  
                   </div>

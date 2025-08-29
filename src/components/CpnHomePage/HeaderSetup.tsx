@@ -22,9 +22,9 @@ const HeaderSetup = () => {
               <span>Home</span>
             </button>
           </Link>
-          <Link to="#">
+          <Link to="/join-course">
             <button className="hover:text-white cursor-pointer transition-colors duration-200 px-2 py-1">
-              <span>Contact</span>
+              <span>Course</span>
             </button>
           </Link>
           <Link to="#">

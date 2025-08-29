@@ -17,8 +17,8 @@ namespace WebComingAPI.Data
         }
 
         public IMongoCollection<User> Users => _database.GetCollection<User>("users");
-
-        // Add other collections here as needed
-        // public IMongoCollection<Course> Courses => _database.GetCollection<Course>("courses");
+        public IMongoCollection<Course> Courses => _database.GetCollection<Course>("courses");
+        public IMongoCollection<CourseRegistration> CourseRegistrations => _database.GetCollection<CourseRegistration>("courseRegistrations");
+        public IMongoCollection<TestResult> TestResults => _database.GetCollection<TestResult>("testResults");
     }
 }
