@@ -32,7 +32,7 @@ namespace WebComingAPI.Controllers
 
                 foreach (var course in courses)
                 {
-                    var videoLessons = await _courseService.GetVideoLessonsByCourseIdAsync(course.Id);
+                    var videoLessons = await _courseService.GetVideoLessonsByCourseIdAsync(course.CourseId);
                     allVideoLessons.AddRange(videoLessons);
                 }
 
