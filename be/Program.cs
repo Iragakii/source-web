@@ -49,14 +49,21 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure CORS
+// Configure CORS with specific origins for better security
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+                "https://iragaki-fe.vercel.app",
+                "https://iragaki.info",
+                "http://localhost:5173",
+                "http://localhost:3000"
+              )
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromSeconds(3600));
     });
 });
 
@@ -72,7 +79,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Use CORS
-app.UseCors("AllowAllOrigins");
+app.UseCors("AllowFrontend");
 
 // Use authentication and authorization
 app.UseAuthentication();
