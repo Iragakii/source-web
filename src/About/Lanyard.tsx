@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 "use client";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Canvas, extend, useFrame } from "@react-three/fiber";
 import {
   useGLTF,
@@ -330,17 +330,17 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
         </RigidBody>
       </group>
       <mesh ref={band}>
-        <meshLineGeometry attach="geometry" />
-        <meshLineMaterial
-          attach="material"
-          color="#ff6b6b"
-          depthTest={false}
-          resolution={isSmall ? [3500, 1000] : [3500, 1000]}
-          useMap={true}
-          map={texture}
-          repeat={[-4, 1]}
-          lineWidth={3}
-        />
+        {React.createElement('meshLineGeometry', { attach: 'geometry' })}
+        {React.createElement('meshLineMaterial', {
+          attach: 'material',
+          color: '#ff6b6b',
+          depthTest: false,
+          resolution: isSmall ? [3500, 1000] : [3500, 1000],
+          useMap: true,
+          map: texture,
+          repeat: [-4, 1],
+          lineWidth: 3,
+        })}
       </mesh>
     </>
   );

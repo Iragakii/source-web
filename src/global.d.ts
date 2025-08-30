@@ -4,12 +4,24 @@ declare module '*.glb';
 declare module '*.png';
 
 declare module 'meshline' {
-  export class MeshLineGeometry {
+  import { BufferGeometry, Material, Texture } from 'three';
+  
+  export class MeshLineGeometry extends BufferGeometry {
     constructor();
     setPoints(points: any[]): void;
   }
-  export class MeshLineMaterial {
-    constructor(parameters?: any);
+  
+  export class MeshLineMaterial extends Material {
+    constructor(parameters?: {
+      color?: string | number;
+      depthTest?: boolean;
+      resolution?: [number, number];
+      useMap?: boolean;
+      map?: Texture;
+      repeat?: [number, number];
+      lineWidth?: number;
+      [key: string]: any;
+    });
   }
 }
 
@@ -18,24 +30,21 @@ declare global {
     interface IntrinsicElements {
       meshLineGeometry: {
         attach?: string;
+        ref?: React.Ref<any>;
         [key: string]: any;
       };
       meshLineMaterial: {
         attach?: string;
-        color?: string;
+        color?: string | number;
         depthTest?: boolean;
         resolution?: [number, number];
         useMap?: boolean;
         map?: any;
         repeat?: [number, number];
         lineWidth?: number;
+        ref?: React.Ref<any>;
         [key: string]: any;
       };
     }
   }
 }
-
-- src/vite-env.d.ts
-/// <reference types="vite/client" />
-declare module '*.glb';
-declare module '*.png';
