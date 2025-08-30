@@ -50,15 +50,13 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Configure CORS
-var corsSettings = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins", policy =>
+    options.AddPolicy("AllowAllOrigins", policy =>
     {
-        policy.WithOrigins(corsSettings ?? new[] { "http://localhost:3000" })
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
@@ -74,7 +72,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Use CORS
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowAllOrigins");
 
 // Use authentication and authorization
 app.UseAuthentication();
