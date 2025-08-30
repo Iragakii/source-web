@@ -15,6 +15,7 @@ import CourseCyberAccess from "./JoinCourse/CourseCyberDetail/CourseCyberAccess"
 import CourseDetailCyber from "./JoinCourse/CourseCyberDetail/CourseDetailCyber";
 import TestITBackG from "./JoinCourse/TestIT/TestITBackG";
 import TestCyberBackG from "./JoinCourse/TestIT/QuestionCyber/BGCyberTest/TestCyberBackG";
+import AboutUI from "./About/AboutUI";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/course/:courseId/access" element={<CourseAccess />} />
           <Route path="/course-cyber/:courseId" element={<CourseDetailCyber />} />
           <Route path="/course-cyber/:courseId/access" element={<CourseCyberAccess />} />
+          <Route path="/about" element={<AboutUI />} />
         </Routes>
       </NotificationProvider>
     </AuthProvider>

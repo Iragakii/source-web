@@ -98,6 +98,16 @@ body::-webkit-scrollbar {
   animation: shine 3s linear infinite;
 }
 
+.custom-shine-text {
+  background: linear-gradient(120deg, #ED775A 40%, #E4004B 50%, #ED775A 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shine 3s linear infinite;
+}
+
 .shine-line-left {
   background: linear-gradient(90deg, transparent 0%, #ffffff 50%, #dddeab 100%);
   background-size: 100% 100%;

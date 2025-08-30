@@ -27,12 +27,8 @@ const HeaderSetup = () => {
               <span>Course</span>
             </button>
           </Link>
-          <Link to="#">
-            <button className="hover:text-white cursor-pointer transition-colors duration-200 px-2 py-1">
-              <span>FAQ</span>
-            </button>
-          </Link>
-          <Link to="#">
+       
+          <Link to="/about">
             <button className="hover:text-white cursor-pointer transition-colors duration-200 px-2 py-1">
               <span>About US</span>
             </button>

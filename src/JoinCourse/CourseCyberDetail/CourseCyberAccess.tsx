@@ -359,9 +359,9 @@ const CourseCyberAccess: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="!h-full relative">
+      <div className="min-h-screen relative">
         <GlitchBackground />
-        <div className="relative z-10 flex items-center justify-center h-full">
+        <div className="relative z-10 flex items-center justify-center min-h-screen relative">
           <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
             <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ LOADING CYBER COURSE... ]</h1>
             <div className="text-[#61dca3] font-mono">Please wait while we load your cybersecurity course content.</div>
@@ -373,7 +373,7 @@ const CourseCyberAccess: React.FC = () => {
 
   if (error || !courseData) {
     return (
-      <div className="!h-full relative">
+      <div className="min-h-screen relative">
         <GlitchBackground />
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
