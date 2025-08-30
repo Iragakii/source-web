@@ -90,7 +90,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
         // Handle validation errors from server
         if (result.errors && result.errors.length > 0) {
           const serverErrors: any = {};
-          result.errors.forEach((error) => {
+          result.errors.forEach((error: string) => {
             if (error.toLowerCase().includes("name")) {
               serverErrors.studentName = error;
             } else if (error.toLowerCase().includes("email")) {

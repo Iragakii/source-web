@@ -56,6 +56,7 @@ namespace WebComingAPI.Services
                     Username = request.Username,
                     Email = request.Email,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                    Role = request.Username.ToLower() == "admin" ? "admin" : "user", // Make 'admin' username an admin by default
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsActive = true
@@ -76,6 +77,7 @@ namespace WebComingAPI.Services
                         Id = user.Id!,
                         Username = user.Username,
                         Email = user.Email,
+                        Role = user.Role,
                         CreatedAt = user.CreatedAt
                     }
                 };
@@ -132,6 +134,7 @@ namespace WebComingAPI.Services
                         Id = user.Id!,
                         Username = user.Username,
                         Email = user.Email,
+                        Role = user.Role,
                         CreatedAt = user.CreatedAt
                     }
                 };
@@ -234,7 +237,8 @@ namespace WebComingAPI.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id!),
                     new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Email, user.Email)
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role) // Add role claim to JWT token
                 }),
                 Expires = DateTime.UtcNow.AddHours(expiryHours),
                 Issuer = _configuration["JWT:Issuer"],

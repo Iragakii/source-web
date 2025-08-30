@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import BackGroundLogin from "./BackGroundLogin";
-import { authService } from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 import { useNotification } from "../contexts/NotificationContext";
+import BackGroundLogin from "./BackGroundLogin";
 
 const SignUpPage = () => {
   const [username, setUsername] = useState("");
@@ -19,6 +19,7 @@ const SignUpPage = () => {
     general?: string;
   }>({});
   const navigate = useNavigate();
+  const { register } = useAuth();
   const { showNotification } = useNotification();
 
   const validateForm = () => {
@@ -65,43 +66,26 @@ const SignUpPage = () => {
     setErrors({});
 
     try {
-      const result = await authService.register({
+      const success = await register({
         username,
         email,
         password,
-        confirmPassword,
+        confirmPassword
       });
 
-      if (result.success && result.data?.user) {
-        showNotification(`Account created successfully! Welcome ${result.data.user.username}!`, 'success');
-        // Redirect to login page with success message
-        navigate("/login?openModal=true");
+      if (success) {
+        showNotification(`Account created successfully! Welcome ${username}!`, 'success');
+        // Redirect to home page after successful registration
+        navigate('/');
       } else {
-        // Handle validation errors from server
-        if (result.errors && result.errors.length > 0) {
-          const serverErrors: any = {};
-          result.errors.forEach((error) => {
-            if (error.toLowerCase().includes("username")) {
-              serverErrors.username = error;
-            } else if (error.toLowerCase().includes("email")) {
-              serverErrors.email = error;
-            } else if (error.toLowerCase().includes("password")) {
-              serverErrors.password = error;
-            } else {
-              serverErrors.general = error;
-            }
-          });
-          setErrors(serverErrors);
-        } else {
-          setErrors({
-            general: result.message || "Registration failed. Please try again.",
-          });
-        }
+        setErrors({
+          general: "Registration failed. Please try again."
+        });
       }
     } catch (error) {
       console.error("Registration error:", error);
       setErrors({
-        general: "An unexpected error occurred. Please try again.",
+        general: "An unexpected error occurred. Please try again."
       });
     } finally {
       setIsLoading(false);

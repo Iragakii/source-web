@@ -1,295 +1,87 @@
 using MongoDB.Driver;
 using WebComingAPI.Data;
 using WebComingAPI.Models;
-using WebComingAPI.Models.DTOs;
-using System.Security.Claims;
 
 namespace WebComingAPI.Services
 {
     public class CourseService : ICourseService
     {
-        private readonly MongoDbContext _context;
-        private readonly ILogger<CourseService> _logger;
+        private readonly IMongoCollection<Course> _courses;
+        private readonly IMongoCollection<VideoLesson> _videoLessons;
 
-        public CourseService(MongoDbContext context, ILogger<CourseService> logger)
+        public CourseService(MongoDbContext context)
         {
-            _context = context;
-            _logger = logger;
+            _courses = context.Courses;
+            _videoLessons = context.VideoLessons;
         }
 
-        public async Task<ApiResponse<CourseRegistrationResponse>> RegisterForCourseAsync(CourseRegistrationRequest request)
+        public async Task<List<Course>> GetAllCoursesAsync()
         {
-            try
-            {
-                // Check if user already registered for this course with the same email
-                var existingRegistration = await _context.CourseRegistrations
-                    .Find(r => r.Email == request.Email && r.CourseName == request.CourseName)
-                    .FirstOrDefaultAsync();
-
-                if (existingRegistration != null)
-                {
-                    return new ApiResponse<CourseRegistrationResponse>
-                    {
-                        Success = false,
-                        Message = "You have already registered for this course with this email address."
-                    };
-                }
-
-                var registration = new CourseRegistration
-                {
-                    StudentName = request.StudentName,
-                    Email = request.Email,
-                    Phone = request.Phone,
-                    CourseName = request.CourseName,
-                    Experience = request.Experience,
-                    Notes = request.Notes,
-                    Status = "pending",
-                    RegistrationDate = DateTime.UtcNow
-                };
-
-                await _context.CourseRegistrations.InsertOneAsync(registration);
-
-                var response = new CourseRegistrationResponse
-                {
-                    Id = registration.Id,
-                    StudentName = registration.StudentName,
-                    Email = registration.Email,
-                    Phone = registration.Phone,
-                    CourseName = registration.CourseName,
-                    Experience = registration.Experience,
-                    Status = registration.Status,
-                    RegistrationDate = registration.RegistrationDate,
-                    Notes = registration.Notes
-                };
-
-                _logger.LogInformation("Course registration created successfully for {Email}", request.Email);
-                return new ApiResponse<CourseRegistrationResponse>
-                {
-                    Success = true,
-                    Message = "Course registration submitted successfully!",
-                    Data = response
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating course registration for {Email}", request.Email);
-                return new ApiResponse<CourseRegistrationResponse>
-                {
-                    Success = false,
-                    Message = "An error occurred while processing your registration."
-                };
-            }
+            return await _courses.Find(_ => true).ToListAsync();
         }
 
-        public async Task<ApiResponse<List<CourseResponse>>> GetAvailableCoursesAsync()
+        public async Task<Course?> GetCourseByIdAsync(string id)
         {
-            try
-            {
-                var courses = await _context.Courses
-                    .Find(c => c.IsActive)
-                    .ToListAsync();
-
-                var response = courses.Select(c => new CourseResponse
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    Duration = c.Duration,
-                    Level = c.Level,
-                    IsActive = c.IsActive
-                }).ToList();
-
-                return new ApiResponse<List<CourseResponse>>
-                {
-                    Success = true,
-                    Data = response
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving available courses");
-                return new ApiResponse<List<CourseResponse>>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving courses."
-                };
-            }
+            return await _courses.Find(c => c.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<ApiResponse<List<CourseRegistrationResponse>>> GetUserRegistrationsAsync(string userId)
+        public async Task<Course?> GetCourseByCourseIdAsync(string courseId)
         {
-            try
-            {
-                var registrations = await _context.CourseRegistrations
-                    .Find(r => r.UserId == userId)
-                    .SortByDescending(r => r.RegistrationDate)
-                    .ToListAsync();
-
-                var response = registrations.Select(r => new CourseRegistrationResponse
-                {
-                    Id = r.Id,
-                    StudentName = r.StudentName,
-                    Email = r.Email,
-                    Phone = r.Phone,
-                    CourseName = r.CourseName,
-                    Experience = r.Experience,
-                    Status = r.Status,
-                    RegistrationDate = r.RegistrationDate,
-                    Notes = r.Notes
-                }).ToList();
-
-                return new ApiResponse<List<CourseRegistrationResponse>>
-                {
-                    Success = true,
-                    Data = response
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving user registrations for {UserId}", userId);
-                return new ApiResponse<List<CourseRegistrationResponse>>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving your registrations."
-                };
-            }
+            return await _courses.Find(c => c.CourseId == courseId).FirstOrDefaultAsync();
         }
 
-        public async Task<ApiResponse<CourseRegistrationResponse>> GetRegistrationByIdAsync(string registrationId)
+        public async Task<List<Course>> GetCoursesByCategoryAsync(string category)
         {
-            try
-            {
-                var registration = await _context.CourseRegistrations
-                    .Find(r => r.Id == registrationId)
-                    .FirstOrDefaultAsync();
-
-                if (registration == null)
-                {
-                    return new ApiResponse<CourseRegistrationResponse>
-                    {
-                        Success = false,
-                        Message = "Registration not found."
-                    };
-                }
-
-                var response = new CourseRegistrationResponse
-                {
-                    Id = registration.Id,
-                    StudentName = registration.StudentName,
-                    Email = registration.Email,
-                    Phone = registration.Phone,
-                    CourseName = registration.CourseName,
-                    Experience = registration.Experience,
-                    Status = registration.Status,
-                    RegistrationDate = registration.RegistrationDate,
-                    Notes = registration.Notes
-                };
-
-                return new ApiResponse<CourseRegistrationResponse>
-                {
-                    Success = true,
-                    Data = response
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving registration {RegistrationId}", registrationId);
-                return new ApiResponse<CourseRegistrationResponse>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving the registration."
-                };
-            }
+            return await _courses.Find(c => c.Category == category && c.IsActive).ToListAsync();
         }
 
-        public async Task<ApiResponse<bool>> UpdateRegistrationStatusAsync(string registrationId, string status)
+        public async Task<Course> CreateCourseAsync(Course course)
         {
-            try
-            {
-                var filter = Builders<CourseRegistration>.Filter.Eq(r => r.Id, registrationId);
-                var update = Builders<CourseRegistration>.Update.Set(r => r.Status, status);
-
-                var result = await _context.CourseRegistrations.UpdateOneAsync(filter, update);
-
-                if (result.MatchedCount == 0)
-                {
-                    return new ApiResponse<bool>
-                    {
-                        Success = false,
-                        Message = "Registration not found."
-                    };
-                }
-
-                _logger.LogInformation("Registration {RegistrationId} status updated to {Status}", registrationId, status);
-                return new ApiResponse<bool>
-                {
-                    Success = true,
-                    Data = true,
-                    Message = "Registration status updated successfully."
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating registration status for {RegistrationId}", registrationId);
-                return new ApiResponse<bool>
-                {
-                    Success = false,
-                    Message = "An error occurred while updating the registration status."
-                };
-            }
+            await _courses.InsertOneAsync(course);
+            return course;
         }
 
-        public async Task<ApiResponse<GetRegistrationsResponse>> GetAllRegistrationsAsync(int page = 1, int pageSize = 10)
+        public async Task<Course> UpdateCourseAsync(Course course)
         {
-            try
-            {
-                var skip = (page - 1) * pageSize;
-                
-                var totalCount = await _context.CourseRegistrations.CountDocumentsAsync(FilterDefinition<CourseRegistration>.Empty);
-                
-                var registrations = await _context.CourseRegistrations
-                    .Find(FilterDefinition<CourseRegistration>.Empty)
-                    .SortByDescending(r => r.RegistrationDate)
-                    .Skip(skip)
-                    .Limit(pageSize)
-                    .ToListAsync();
+            await _courses.ReplaceOneAsync(c => c.Id == course.Id, course);
+            return course;
+        }
 
-                var registrationResponses = registrations.Select(r => new CourseRegistrationResponse
-                {
-                    Id = r.Id,
-                    StudentName = r.StudentName,
-                    Email = r.Email,
-                    Phone = r.Phone,
-                    CourseName = r.CourseName,
-                    Experience = r.Experience,
-                    Status = r.Status,
-                    RegistrationDate = r.RegistrationDate,
-                    Notes = r.Notes
-                }).ToList();
+        public async Task DeleteCourseAsync(string id)
+        {
+            // Also delete associated video lessons
+            await _videoLessons.DeleteManyAsync(v => v.CourseId == id);
+            await _courses.DeleteOneAsync(c => c.Id == id);
+        }
 
-                var response = new GetRegistrationsResponse
-                {
-                    Registrations = registrationResponses,
-                    TotalCount = (int)totalCount,
-                    Page = page,
-                    PageSize = pageSize
-                };
+        public async Task<List<VideoLesson>> GetVideoLessonsByCourseIdAsync(string courseId)
+        {
+            return await _videoLessons
+                .Find(v => v.CourseId == courseId)
+                .SortBy(v => v.Order)
+                .ToListAsync();
+        }
 
-                return new ApiResponse<GetRegistrationsResponse>
-                {
-                    Success = true,
-                    Data = response
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all registrations");
-                return new ApiResponse<GetRegistrationsResponse>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving registrations."
-                };
-            }
+        public async Task<VideoLesson?> GetVideoLessonByIdAsync(string id)
+        {
+            return await _videoLessons.Find(v => v.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<VideoLesson> CreateVideoLessonAsync(VideoLesson videoLesson)
+        {
+            await _videoLessons.InsertOneAsync(videoLesson);
+            return videoLesson;
+        }
+
+        public async Task<VideoLesson> UpdateVideoLessonAsync(VideoLesson videoLesson)
+        {
+            await _videoLessons.ReplaceOneAsync(v => v.Id == videoLesson.Id, videoLesson);
+            return videoLesson;
+        }
+
+        public async Task DeleteVideoLessonAsync(string id)
+        {
+            await _videoLessons.DeleteOneAsync(v => v.Id == id);
         }
     }
 }

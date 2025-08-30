@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../services/authService";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNotification } from "../../contexts/NotificationContext";
 
 interface SimpleModalLoginProps {
@@ -13,6 +13,7 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
   const { showNotification } = useNotification();
   const [errors, setErrors] = useState<{
     username?: string;
@@ -45,16 +46,16 @@ const SimpleModalLogin = ({ isOpen, onClose }: SimpleModalLoginProps) => {
     setErrors({});
 
     try {
-      const result = await authService.login({ username, password });
+      const success = await login(username, password);
       
-      if (result.success && result.data?.user) {
-        showNotification(`Login successful! Welcome back, ${result.data.user.username}!`, 'success');
+      if (success) {
+        showNotification(`Login successful! Welcome back, ${username}!`, 'success');
         onClose();
         // Redirect to homepage after successful login
         navigate('/');
       } else {
         setErrors({ 
-          general: result.message || "Login failed. Please try again." 
+          general: "Invalid username or password. Please try again." 
         });
       }
     } catch (error) {

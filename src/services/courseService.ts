@@ -1,24 +1,77 @@
 const API_BASE_URL = 'http://localhost:5002/api';
 
+export interface Course {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  duration: string;
+  level: string;
+  instructor: string;
+  imageUrl: string;
+  category: string;
+  videoId: string;
+  isVideo: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface VideoLesson {
+  id: string;
+  videoId: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  duration: string;
+  order: number;
+  isActive: boolean;
+  courseId: string;
+  courseName: string;
+  createdAt: string;
+}
+
+export interface CreateCourseRequest {
+  courseId: string;
+  title: string;
+  description: string;
+  duration: string;
+  level: string;
+  instructor: string;
+  imageUrl: string;
+  category: string;
+  videoId: string;
+  isVideo: boolean;
+}
+
+export interface CreateVideoRequest {
+  videoId: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  duration: string;
+  order: number;
+  courseId: string;
+}
+
 export interface CourseRegistrationRequest {
   studentName: string;
   email: string;
   phone: string;
   courseName: string;
   experience: string;
-  notes?: string;
+  notes: string;
 }
 
-export interface CourseRegistrationResponse {
+export interface CourseRegistration {
   id: string;
   studentName: string;
   email: string;
   phone: string;
   courseName: string;
   experience: string;
-  status: string;
+  notes: string;
   registrationDate: string;
-  notes?: string;
+  status: string;
 }
 
 export interface ApiResponse<T> {
@@ -29,128 +82,205 @@ export interface ApiResponse<T> {
 }
 
 class CourseService {
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
+  private getAuthHeaders(): HeadersInit {
+    const token = localStorage.getItem('authToken');
+    return {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
     };
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
   }
 
-  async registerForCourse(request: CourseRegistrationRequest): Promise<ApiResponse<CourseRegistrationResponse>> {
+  // Course methods
+  async getAllCourses(): Promise<ApiResponse<Course[]>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/register`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(request),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          success: false,
-          message: data.message || 'Registration failed',
-          errors: data.errors || []
-        };
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Course registration error:', error);
-      return {
-        success: false,
-        message: 'Network error occurred. Please try again.',
-        errors: []
-      };
-    }
-  }
-
-  async getAvailableCourses(): Promise<ApiResponse<any[]>> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/course/available`, {
+      const response = await fetch(`${API_BASE_URL}/course`, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers: this.getAuthHeaders(),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          success: false,
-          message: data.message || 'Failed to fetch courses',
-          errors: data.errors || []
-        };
-      }
-
-      return data;
+      return await response.json();
     } catch (error) {
       console.error('Get courses error:', error);
       return {
         success: false,
-        message: 'Network error occurred. Please try again.',
-        errors: []
+        message: 'Network error occurred while fetching courses',
       };
     }
   }
 
-  async getMyRegistrations(): Promise<ApiResponse<CourseRegistrationResponse[]>> {
+  async getCourseById(id: string): Promise<ApiResponse<Course>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/my-registrations`, {
+      const response = await fetch(`${API_BASE_URL}/course/${id}`, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers: this.getAuthHeaders(),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          success: false,
-          message: data.message || 'Failed to fetch registrations',
-          errors: data.errors || []
-        };
-      }
-
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Get registrations error:', error);
+      console.error('Get course error:', error);
       return {
         success: false,
-        message: 'Network error occurred. Please try again.',
-        errors: []
+        message: 'Network error occurred while fetching course',
       };
     }
   }
 
-  async getRegistrationById(registrationId: string): Promise<ApiResponse<CourseRegistrationResponse>> {
+  async createCourse(courseData: CreateCourseRequest): Promise<ApiResponse<Course>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/registration/${registrationId}`, {
-        method: 'GET',
-        headers: this.getHeaders(),
+      const response = await fetch(`${API_BASE_URL}/course`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(courseData),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          success: false,
-          message: data.message || 'Failed to fetch registration',
-          errors: data.errors || []
-        };
-      }
-
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Get registration error:', error);
+      console.error('Create course error:', error);
       return {
         success: false,
-        message: 'Network error occurred. Please try again.',
-        errors: []
+        message: 'Network error occurred while creating course',
+      };
+    }
+  }
+
+  async updateCourse(id: string, courseData: Partial<CreateCourseRequest>): Promise<ApiResponse<Course>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/course/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(courseData),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Update course error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while updating course',
+      };
+    }
+  }
+
+  async deleteCourse(id: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/course/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Delete course error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while deleting course',
+      };
+    }
+  }
+
+  // Video methods
+  async getAllVideos(): Promise<ApiResponse<VideoLesson[]>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/video`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Get videos error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while fetching videos',
+      };
+    }
+  }
+
+  async getVideosByCourse(courseId: string): Promise<ApiResponse<VideoLesson[]>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/video/course/${courseId}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Get course videos error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while fetching course videos',
+      };
+    }
+  }
+
+  async createVideo(videoData: CreateVideoRequest): Promise<ApiResponse<VideoLesson>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/video`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(videoData),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Create video error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while creating video',
+      };
+    }
+  }
+
+  async updateVideo(id: string, videoData: Partial<CreateVideoRequest>): Promise<ApiResponse<VideoLesson>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/video/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(videoData),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Update video error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while updating video',
+      };
+    }
+  }
+
+  async deleteVideo(id: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/video/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Delete video error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while deleting video',
+      };
+    }
+  }
+
+  // Course registration methods
+  async registerForCourse(registrationData: CourseRegistrationRequest): Promise<ApiResponse<CourseRegistration>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/course/register`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(registrationData),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Course registration error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while registering for course',
       };
     }
   }

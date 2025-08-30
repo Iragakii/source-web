@@ -6,6 +6,7 @@ import "remixicon/fonts/remixicon.css";
 import LoginPage from "./LoginPage/LoginPage";
 import SignUpPage from "./LoginPage/SignUpPage";
 import RegisterCourse from "./RegisterCourse/ResgisterCourse";
+import AdminDashboard from "./AdminUI/AdminDashboard";
 
 import CourseUI from "./JoinCourse/CourseUI";
 import CourseDetail from "./JoinCourse/CourseDetail/CourseDetail";
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage></LoginPage>} />
           <Route path="/sign-up" element={<SignUpPage></SignUpPage>} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/register-course" element={<RegisterCourse></RegisterCourse>} />
           <Route path="/join-course" element={<CourseUI></CourseUI>} />
           <Route path="/test-it" element={<TestITBackG></TestITBackG>} />

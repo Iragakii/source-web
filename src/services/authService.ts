@@ -23,10 +23,19 @@ export interface AuthResponse {
       id: string;
       username: string;
       email: string;
+      role: string;
       createdAt: string;
     };
   };
   errors?: string[];
+}
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  createdAt: string;
 }
 
 export interface ApiResponse<T> {

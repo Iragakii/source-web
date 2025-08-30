@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using WebComingAPI.Models.DTOs;
+using WebComingAPI.Models;
 using WebComingAPI.Services;
+using WebComingAPI.DTOs;
 
 namespace WebComingAPI.Controllers
 {
@@ -19,248 +19,320 @@ namespace WebComingAPI.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Register for a course
-        /// </summary>
-        [HttpPost("register")]
-        public async Task<ActionResult<ApiResponse<CourseRegistrationResponse>>> RegisterForCourse([FromBody] CourseRegistrationRequest request)
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<List<Course>>>> GetAllCourses()
+        {
+            try
+            {
+                var courses = await _courseService.GetAllCoursesAsync();
+                return Ok(new ApiResponse<List<Course>>
+                {
+                    Success = true,
+                    Data = courses,
+                    Message = "Courses retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving courses");
+                return StatusCode(500, new ApiResponse<List<Course>>
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ApiResponse<Course>>> GetCourseById(string id)
+        {
+            try
+            {
+                var course = await _courseService.GetCourseByIdAsync(id);
+                if (course == null)
+                {
+                    return NotFound(new ApiResponse<Course>
+                    {
+                        Success = false,
+                        Message = "Course not found"
+                    });
+                }
+
+                return Ok(new ApiResponse<Course>
+                {
+                    Success = true,
+                    Data = course,
+                    Message = "Course retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving course with id {CourseId}", id);
+                return StatusCode(500, new ApiResponse<Course>
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+        [HttpGet("course-id/{courseId}")]
+        public async Task<ActionResult<ApiResponse<Course>>> GetCourseByCourseId(string courseId)
+        {
+            try
+            {
+                var course = await _courseService.GetCourseByCourseIdAsync(courseId);
+                if (course == null)
+                {
+                    return NotFound(new ApiResponse<Course>
+                    {
+                        Success = false,
+                        Message = "Course not found"
+                    });
+                }
+
+                return Ok(new ApiResponse<Course>
+                {
+                    Success = true,
+                    Data = course,
+                    Message = "Course retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving course with courseId {CourseId}", courseId);
+                return StatusCode(500, new ApiResponse<Course>
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<Course>>> CreateCourse([FromBody] CreateCourseRequest request)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-
-                    return BadRequest(new ApiResponse<CourseRegistrationResponse>
+                    return BadRequest(new ApiResponse<Course>
                     {
                         Success = false,
-                        Message = "Validation failed",
-                        Errors = errors
+                        Message = "Invalid course data"
                     });
                 }
 
-                var result = await _courseService.RegisterForCourseAsync(request);
-                
-                if (result.Success)
+                // Check if course with same courseId already exists
+                var existingCourse = await _courseService.GetCourseByCourseIdAsync(request.CourseId);
+                if (existingCourse != null)
                 {
-                    return Ok(result);
+                    return Conflict(new ApiResponse<Course>
+                    {
+                        Success = false,
+                        Message = "Course with this ID already exists"
+                    });
                 }
-                
-                return BadRequest(result);
+
+                var course = new Course
+                {
+                    CourseId = request.CourseId,
+                    Title = request.Title,
+                    Description = request.Description,
+                    Duration = request.Duration,
+                    Level = request.Level,
+                    Instructor = request.Instructor,
+                    ImageUrl = request.ImageUrl,
+                    Category = request.Category,
+                    VideoId = request.VideoId,
+                    IsVideo = request.IsVideo,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var createdCourse = await _courseService.CreateCourseAsync(course);
+                return CreatedAtAction(nameof(GetCourseById), new { id = createdCourse.Id }, 
+                    new ApiResponse<Course>
+                    {
+                        Success = true,
+                        Data = createdCourse,
+                        Message = "Course created successfully"
+                    });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in RegisterForCourse endpoint");
-                return StatusCode(500, new ApiResponse<CourseRegistrationResponse>
+                _logger.LogError(ex, "Error creating course");
+                return StatusCode(500, new ApiResponse<Course>
                 {
                     Success = false,
-                    Message = "An internal server error occurred"
+                    Message = "Internal server error"
                 });
             }
         }
 
-        /// <summary>
-        /// Get all available courses
-        /// </summary>
-        [HttpGet("available")]
-        public async Task<ActionResult<ApiResponse<List<CourseResponse>>>> GetAvailableCourses()
+        [HttpPut("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<Course>>> UpdateCourse(string id, [FromBody] UpdateCourseRequest request)
         {
             try
             {
-                var result = await _courseService.GetAvailableCoursesAsync();
-                
-                if (result.Success)
-                {
-                    return Ok(result);
-                }
-                
-                return BadRequest(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetAvailableCourses endpoint");
-                return StatusCode(500, new ApiResponse<List<CourseResponse>>
-                {
-                    Success = false,
-                    Message = "An internal server error occurred"
-                });
-            }
-        }
-
-        /// <summary>
-        /// Get user's course registrations (requires authentication)
-        /// </summary>
-        [HttpGet("my-registrations")]
-        [Authorize]
-        public async Task<ActionResult<ApiResponse<List<CourseRegistrationResponse>>>> GetMyRegistrations()
-        {
-            try
-            {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(new ApiResponse<List<CourseRegistrationResponse>>
-                    {
-                        Success = false,
-                        Message = "User not authenticated"
-                    });
-                }
-
-                var result = await _courseService.GetUserRegistrationsAsync(userId);
-                
-                if (result.Success)
-                {
-                    return Ok(result);
-                }
-                
-                return BadRequest(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetMyRegistrations endpoint");
-                return StatusCode(500, new ApiResponse<List<CourseRegistrationResponse>>
-                {
-                    Success = false,
-                    Message = "An internal server error occurred"
-                });
-            }
-        }
-
-        /// <summary>
-        /// Get a specific registration by ID
-        /// </summary>
-        [HttpGet("registration/{registrationId}")]
-        public async Task<ActionResult<ApiResponse<CourseRegistrationResponse>>> GetRegistration(string registrationId)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(registrationId))
-                {
-                    return BadRequest(new ApiResponse<CourseRegistrationResponse>
-                    {
-                        Success = false,
-                        Message = "Registration ID is required"
-                    });
-                }
-
-                var result = await _courseService.GetRegistrationByIdAsync(registrationId);
-                
-                if (result.Success)
-                {
-                    return Ok(result);
-                }
-                
-                return NotFound(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetRegistration endpoint for {RegistrationId}", registrationId);
-                return StatusCode(500, new ApiResponse<CourseRegistrationResponse>
-                {
-                    Success = false,
-                    Message = "An internal server error occurred"
-                });
-            }
-        }
-
-        /// <summary>
-        /// Update registration status (admin only)
-        /// </summary>
-        [HttpPut("registration/{registrationId}/status")]
-        [Authorize] // In a real app, you'd add role-based authorization here
-        public async Task<ActionResult<ApiResponse<bool>>> UpdateRegistrationStatus(
-            string registrationId, 
-            [FromBody] UpdateRegistrationStatusRequest request)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(registrationId))
-                {
-                    return BadRequest(new ApiResponse<bool>
-                    {
-                        Success = false,
-                        Message = "Registration ID is required"
-                    });
-                }
-
                 if (!ModelState.IsValid)
                 {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-
-                    return BadRequest(new ApiResponse<bool>
+                    return BadRequest(new ApiResponse<Course>
                     {
                         Success = false,
-                        Message = "Validation failed",
-                        Errors = errors
+                        Message = "Invalid course data"
                     });
                 }
 
-                var result = await _courseService.UpdateRegistrationStatusAsync(registrationId, request.Status);
-                
-                if (result.Success)
+                var existingCourse = await _courseService.GetCourseByIdAsync(id);
+                if (existingCourse == null)
                 {
-                    return Ok(result);
+                    return NotFound(new ApiResponse<Course>
+                    {
+                        Success = false,
+                        Message = "Course not found"
+                    });
                 }
-                
-                return BadRequest(result);
+
+                // Check if another course with same courseId exists (excluding current course)
+                var courseWithSameId = await _courseService.GetCourseByCourseIdAsync(request.CourseId);
+                if (courseWithSameId != null && courseWithSameId.Id != id)
+                {
+                    return Conflict(new ApiResponse<Course>
+                    {
+                        Success = false,
+                        Message = "Another course with this ID already exists"
+                    });
+                }
+
+                existingCourse.CourseId = request.CourseId;
+                existingCourse.Title = request.Title;
+                existingCourse.Description = request.Description;
+                existingCourse.Duration = request.Duration;
+                existingCourse.Level = request.Level;
+                existingCourse.Instructor = request.Instructor;
+                existingCourse.ImageUrl = request.ImageUrl;
+                existingCourse.Category = request.Category;
+                existingCourse.VideoId = request.VideoId;
+                existingCourse.IsVideo = request.IsVideo;
+                existingCourse.UpdatedAt = DateTime.UtcNow;
+
+                var updatedCourse = await _courseService.UpdateCourseAsync(existingCourse);
+                return Ok(new ApiResponse<Course>
+                {
+                    Success = true,
+                    Data = updatedCourse,
+                    Message = "Course updated successfully"
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in UpdateRegistrationStatus endpoint for {RegistrationId}", registrationId);
-                return StatusCode(500, new ApiResponse<bool>
+                _logger.LogError(ex, "Error updating course with id {CourseId}", id);
+                return StatusCode(500, new ApiResponse<Course>
                 {
                     Success = false,
-                    Message = "An internal server error occurred"
+                    Message = "Internal server error"
                 });
             }
         }
 
-        /// <summary>
-        /// Get all registrations with pagination (admin only)
-        /// </summary>
-        [HttpGet("registrations")]
-        [Authorize] // In a real app, you'd add role-based authorization here
-        public async Task<ActionResult<ApiResponse<GetRegistrationsResponse>>> GetAllRegistrations(
-            [FromQuery] int page = 1, 
-            [FromQuery] int pageSize = 10)
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<object>>> DeleteCourse(string id)
         {
             try
             {
-                if (page < 1) page = 1;
-                if (pageSize < 1 || pageSize > 100) pageSize = 10;
-
-                var result = await _courseService.GetAllRegistrationsAsync(page, pageSize);
-                
-                if (result.Success)
+                var course = await _courseService.GetCourseByIdAsync(id);
+                if (course == null)
                 {
-                    return Ok(result);
+                    return NotFound(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Course not found"
+                    });
                 }
-                
-                return BadRequest(result);
+
+                await _courseService.DeleteCourseAsync(id);
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Course deleted successfully"
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetAllRegistrations endpoint");
-                return StatusCode(500, new ApiResponse<GetRegistrationsResponse>
+                _logger.LogError(ex, "Error deleting course with id {CourseId}", id);
+                return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "An internal server error occurred"
+                    Message = "Internal server error"
                 });
             }
         }
-    }
 
-    public class UpdateRegistrationStatusRequest
-    {
-        [Required(ErrorMessage = "Status is required")]
-        [RegularExpression("^(pending|approved|rejected)$", ErrorMessage = "Status must be 'pending', 'approved', or 'rejected'")]
-        public string Status { get; set; } = string.Empty;
+        [HttpPatch("{id}/toggle-active")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ApiResponse<Course>>> ToggleCourseActive(string id)
+        {
+            try
+            {
+                var course = await _courseService.GetCourseByIdAsync(id);
+                if (course == null)
+                {
+                    return NotFound(new ApiResponse<Course>
+                    {
+                        Success = false,
+                        Message = "Course not found"
+                    });
+                }
+
+                course.IsActive = !course.IsActive;
+                course.UpdatedAt = DateTime.UtcNow;
+
+                var updatedCourse = await _courseService.UpdateCourseAsync(course);
+                return Ok(new ApiResponse<Course>
+                {
+                    Success = true,
+                    Data = updatedCourse,
+                    Message = $"Course {(updatedCourse.IsActive ? "activated" : "deactivated")} successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling course active status with id {CourseId}", id);
+                return StatusCode(500, new ApiResponse<Course>
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+        [HttpGet("category/{category}")]
+        public async Task<ActionResult<ApiResponse<List<Course>>>> GetCoursesByCategory(string category)
+        {
+            try
+            {
+                var courses = await _courseService.GetCoursesByCategoryAsync(category);
+                return Ok(new ApiResponse<List<Course>>
+                {
+                    Success = true,
+                    Data = courses,
+                    Message = "Courses retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving courses by category {Category}", category);
+                return StatusCode(500, new ApiResponse<List<Course>>
+                {
+                    Success = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
     }
 }

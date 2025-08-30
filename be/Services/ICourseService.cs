@@ -1,15 +1,20 @@
 using WebComingAPI.Models;
-using WebComingAPI.Models.DTOs;
 
 namespace WebComingAPI.Services
 {
     public interface ICourseService
     {
-        Task<ApiResponse<CourseRegistrationResponse>> RegisterForCourseAsync(CourseRegistrationRequest request);
-        Task<ApiResponse<List<CourseResponse>>> GetAvailableCoursesAsync();
-        Task<ApiResponse<List<CourseRegistrationResponse>>> GetUserRegistrationsAsync(string userId);
-        Task<ApiResponse<CourseRegistrationResponse>> GetRegistrationByIdAsync(string registrationId);
-        Task<ApiResponse<bool>> UpdateRegistrationStatusAsync(string registrationId, string status);
-        Task<ApiResponse<GetRegistrationsResponse>> GetAllRegistrationsAsync(int page = 1, int pageSize = 10);
+        Task<List<Course>> GetAllCoursesAsync();
+        Task<Course?> GetCourseByIdAsync(string id);
+        Task<Course?> GetCourseByCourseIdAsync(string courseId);
+        Task<List<Course>> GetCoursesByCategoryAsync(string category);
+        Task<Course> CreateCourseAsync(Course course);
+        Task<Course> UpdateCourseAsync(Course course);
+        Task DeleteCourseAsync(string id);
+        Task<List<VideoLesson>> GetVideoLessonsByCourseIdAsync(string courseId);
+        Task<VideoLesson?> GetVideoLessonByIdAsync(string id);
+        Task<VideoLesson> CreateVideoLessonAsync(VideoLesson videoLesson);
+        Task<VideoLesson> UpdateVideoLessonAsync(VideoLesson videoLesson);
+        Task DeleteVideoLessonAsync(string id);
     }
 }

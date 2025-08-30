@@ -18,6 +18,9 @@ namespace WebComingAPI.Models
         [BsonElement("passwordHash")]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [BsonElement("role")]
+        public string Role { get; set; } = "user"; // "user", "admin"
+
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

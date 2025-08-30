@@ -18,6 +18,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // Add authentication services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ITestResultService, TestResultService>();
 

@@ -198,6 +198,7 @@ namespace WebComingAPI.Controllers
                     Id = user.Id!,
                     Username = user.Username,
                     Email = user.Email,
+                    Role = user.Role,
                     CreatedAt = user.CreatedAt
                 };
 
