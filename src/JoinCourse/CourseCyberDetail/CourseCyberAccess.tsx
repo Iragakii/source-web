@@ -158,18 +158,24 @@ const GlitchBackground = () => {
 
 interface VideoLesson {
   id: string;
+  videoId: string;
   title: string;
   duration: string;
   videoUrl: string;
   description: string;
   isWatched: boolean;
+  isActive: boolean;
+  order: number;
+  courseId: string;
 }
 
 interface CourseData {
   id: string;
+  courseId: string;
   title: string;
   description: string;
   instructor: string;
+  category: string;
   lessons: VideoLesson[];
 }
 
@@ -178,6 +184,9 @@ const CourseCyberAccess: React.FC = () => {
   const navigate = useNavigate();
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
+  const [courseData, setCourseData] = useState<CourseData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Convert YouTube URLs to embeddable format
   const getEmbedUrl = (url: string) => {
@@ -190,141 +199,141 @@ const CourseCyberAccess: React.FC = () => {
     } else if (url.includes('studio.youtube.com/video/')) {
       const videoId = url.split('studio.youtube.com/video/')[1].split('/')[0];
       return `https://www.youtube.com/embed/${videoId}`;
+    } else if (url.includes('youtube.com/embed/')) {
+      return url; // Already in embed format
     }
     return url;
   };
 
-  // Cybersecurity course data with the provided YouTube video URLs
-  const getCyberCourseData = (courseNum: string): CourseData | null => {
-    // Handle both "01" and "cyber-01" formats
-    const cleanCourseNum = courseNum.replace('cyber-', '');
-    const courses: { [key: string]: CourseData } = {
-      "01": {
-        id: "course-cyber-01",
-        title: "Advanced Cybersecurity Fundamentals",
-        description: "Master advanced cybersecurity concepts and practical defense strategies.",
-        instructor: "Dr. Sarah Mitchell",
-        lessons: [
-          {
-            id: "cyber-lesson-1",
-            title: "Network Security Architecture",
-            duration: "28:45",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=ooJSgsB5fIE&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=3"),
-            description: "Deep dive into network security architecture and defense mechanisms.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-2",
-            title: "Threat Intelligence & Analysis",
-            duration: "32:20",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=eO8l70pdVhY&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=4"),
-            description: "Understanding threat intelligence gathering and analysis techniques.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-3",
-            title: "Penetration Testing Methodologies",
-            duration: "35:15",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=uk8-jJgu8-I&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=5"),
-            description: "Comprehensive guide to penetration testing methodologies and tools.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-4",
-            title: "Incident Response & Forensics",
-            duration: "29:30",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=KgtevibJlTE&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index="),
-            description: "Learn incident response procedures and digital forensics techniques.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-5",
-            title: "Advanced Malware Analysis",
-            duration: "41:10",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=Sj4TD0LSC_k&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=9"),
-            description: "Advanced techniques for malware analysis and reverse engineering.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-6",
-            title: "Security Operations Center (SOC)",
-            duration: "38:25",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=Dk-ZqQ-bfy4&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=10"),
-            description: "Building and managing effective Security Operations Centers.",
-            isWatched: false
-          }
-        ]
-      },
-      "02": {
-        id: "course-cyber-02",
-        title: "Ethical Hacking & Penetration Testing",
-        description: "Learn ethical hacking techniques and penetration testing methodologies.",
-        instructor: "Alex Rodriguez",
-        lessons: [
-          {
-            id: "cyber-lesson-1",
-            title: "Reconnaissance & Information Gathering",
-            duration: "25:30",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=ooJSgsB5fIE&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=3"),
-            description: "Master reconnaissance techniques for ethical hacking.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-2",
-            title: "Vulnerability Assessment",
-            duration: "30:15",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=eO8l70pdVhY&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=4"),
-            description: "Comprehensive vulnerability assessment methodologies.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-3",
-            title: "Web Application Security Testing",
-            duration: "33:45",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=uk8-jJgu8-I&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=5"),
-            description: "Advanced web application security testing techniques.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-4",
-            title: "Network Penetration Testing",
-            duration: "27:20",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=KgtevibJlTE&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index="),
-            description: "Network penetration testing strategies and tools.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-5",
-            title: "Social Engineering Techniques",
-            duration: "24:50",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=Sj4TD0LSC_k&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=9"),
-            description: "Understanding and defending against social engineering attacks.",
-            isWatched: false
-          },
-          {
-            id: "cyber-lesson-6",
-            title: "Report Writing & Documentation",
-            duration: "22:35",
-            videoUrl: getEmbedUrl("https://www.youtube.com/watch?v=Dk-ZqQ-bfy4&list=PL9ooVrP1hQOGPQVeapGsJCktzIO4DtI4_&index=10"),
-            description: "Professional penetration testing report writing and documentation.",
-            isWatched: false
-          }
-        ]
-      }
-    };
+  // Fetch course and video data from API
+  const fetchCourseData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    return courses[cleanCourseNum] || courses["01"];
+      console.log('Original courseId from URL:', courseId);
+      
+      // Fetch course details
+      const courseResponse = await fetch('http://localhost:5002/api/courses');
+      if (!courseResponse.ok) {
+        throw new Error('Failed to fetch courses');
+      }
+      
+      const courseResult = await courseResponse.json();
+      if (!courseResult.success) {
+        throw new Error(courseResult.message || 'Failed to load courses');
+      }
+
+      console.log('Available courses:', courseResult.data.map((c: any) => c.courseId));
+
+      // For Cyber courses, the URL format is /course-cyber/:courseId/access
+      // Database has courses like: course-cyber-01, course-cyber-02, etc.
+      // URL courseId could be: 01, cyber-01, course-cyber-01, etc.
+      
+      let course = null;
+      
+      // Try exact match first
+      course = courseResult.data.find((c: any) => c.courseId === courseId);
+      if (course) {
+        console.log('Found exact match:', course.courseId);
+      } else {
+        // Try with course-cyber- prefix (most common case for Cyber courses)
+        const withPrefix = `course-cyber-${courseId}`;
+        course = courseResult.data.find((c: any) => c.courseId === withPrefix);
+        if (course) {
+          console.log('Found with course-cyber- prefix:', course.courseId);
+        } else {
+          // Try finding Cyber courses and match by number
+          const cyberCourses = courseResult.data.filter((c: any) => c.courseId.startsWith('course-cyber-'));
+          course = cyberCourses.find((c: any) => {
+            const courseNumber = c.courseId.replace('course-cyber-', '');
+            return courseNumber === courseId || courseNumber === courseId?.replace(/^cyber-/, '');
+          });
+          
+          if (course) {
+            console.log('Found Cyber course by number:', course.courseId);
+          }
+        }
+      }
+
+      if (!course) {
+        console.error('No course found. Available courses:', courseResult.data.map((c: any) => c.courseId));
+        const availableCourses = courseResult.data.map((c: any) => c.courseId).join(', ');
+        throw new Error(`Course not found. Available courses: ${availableCourses}`);
+      }
+
+      // Fetch video lessons for this course
+      const videosResponse = await fetch(`http://localhost:5002/api/videos/course/${course.courseId}`);
+      if (!videosResponse.ok) {
+        throw new Error('Failed to fetch video lessons');
+      }
+
+      const videosResult = await videosResponse.json();
+      if (!videosResult.success) {
+        throw new Error(videosResult.message || 'Failed to load video lessons');
+      }
+
+      // Filter only active videos and sort by order
+      const activeVideos = videosResult.data
+        .filter((video: any) => video.isActive)
+        .sort((a: any, b: any) => a.order - b.order)
+        .map((video: any) => ({
+          id: video.id,
+          videoId: video.videoId,
+          title: video.title,
+          duration: video.duration,
+          videoUrl: getEmbedUrl(video.videoUrl),
+          description: video.description,
+          isWatched: false,
+          isActive: video.isActive,
+          order: video.order,
+          courseId: video.courseId
+        }));
+
+      const courseData: CourseData = {
+        id: course.id,
+        courseId: course.courseId,
+        title: course.title,
+        description: course.description,
+        instructor: course.instructor,
+        category: course.category,
+        lessons: activeVideos
+      };
+
+      setCourseData(courseData);
+    } catch (err) {
+      console.error('Error fetching course data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load course data');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const courseData = getCyberCourseData(courseId || "01");
+  useEffect(() => {
+    fetchCourseData();
+  }, [courseId]);
 
   useEffect(() => {
-    // Load watched videos from localStorage
-    const savedProgress = localStorage.getItem(`cyber-course-progress-${courseId}`);
-    if (savedProgress) {
-      setWatchedVideos(new Set(JSON.parse(savedProgress)));
+    // Load watched videos from localStorage, but only for videos that still exist
+    if (courseData && courseData.lessons.length > 0) {
+      const savedProgress = localStorage.getItem(`cyber-course-progress-${courseId}`);
+      if (savedProgress) {
+        const savedVideoIds = JSON.parse(savedProgress);
+        const currentVideoIds = courseData.lessons.map(lesson => lesson.id);
+        // Only keep watched videos that still exist in the current course
+        const validWatchedVideos = savedVideoIds.filter((id: string) => currentVideoIds.includes(id));
+        setWatchedVideos(new Set(validWatchedVideos));
+        
+        // Update localStorage with cleaned data
+        if (validWatchedVideos.length !== savedVideoIds.length) {
+          localStorage.setItem(
+            `cyber-course-progress-${courseId}`,
+            JSON.stringify(validWatchedVideos)
+          );
+        }
+      }
     }
-  }, [courseId]);
+  }, [courseId, courseData]);
 
   const markVideoAsWatched = (lessonId: string) => {
     const newWatchedVideos = new Set(watchedVideos);
@@ -343,18 +352,55 @@ const CourseCyberAccess: React.FC = () => {
   };
 
   const getCompletionPercentage = () => {
-    if (!courseData) return 0;
-    return Math.round((watchedVideos.size / courseData.lessons.length) * 100);
+    if (!courseData || courseData.lessons.length === 0) return 0;
+    const validWatchedCount = Math.min(watchedVideos.size, courseData.lessons.length);
+    return Math.round((validWatchedCount / courseData.lessons.length) * 100);
   };
 
-  if (!courseData) {
+  if (isLoading) {
+    return (
+      <div className="!h-full relative">
+        <GlitchBackground />
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
+            <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ LOADING CYBER COURSE... ]</h1>
+            <div className="text-[#61dca3] font-mono">Please wait while we load your cybersecurity course content.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !courseData) {
     return (
       <div className="!h-full relative">
         <GlitchBackground />
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
             <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ CYBER COURSE NOT FOUND ]</h1>
-            <p className="text-[#61dca3] font-mono mb-6">The cybersecurity course you're looking for doesn't exist.</p>
+            <p className="text-[#61dca3] font-mono mb-6">
+              {error || "The cybersecurity course you're looking for doesn't exist."}
+            </p>
+            <button
+              onClick={() => navigate("/join-course")}
+              className="bg-transparent border-2 border-[#61dca3] text-[#61dca3] font-mono py-2 px-6 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
+            >
+              [ ← BACK TO COURSES ]
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!courseData.lessons || courseData.lessons.length === 0) {
+    return (
+      <div className="!h-full relative">
+        <GlitchBackground />
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
+            <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ NO CYBER LESSONS AVAILABLE ]</h1>
+            <p className="text-[#61dca3] font-mono mb-6">This cybersecurity course doesn't have any active video lessons yet.</p>
             <button
               onClick={() => navigate("/join-course")}
               className="bg-transparent border-2 border-[#61dca3] text-[#61dca3] font-mono py-2 px-6 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
@@ -529,7 +575,7 @@ const CourseCyberAccess: React.FC = () => {
             <div className="mt-8 p-4 border-2 border-[#2b4539] rounded bg-[#2b4539]/10">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[#61b3dc] font-mono font-bold">CYBER COURSE PROGRESS</span>
-                <span className="text-[#61dca3] font-mono font-bold">{watchedVideos.size}/{courseData.lessons.length}</span>
+                <span className="text-[#61dca3] font-mono font-bold">{Math.min(watchedVideos.size, courseData.lessons.length)}/{courseData.lessons.length}</span>
               </div>
               <div className="w-full h-3 bg-[#2b4539] rounded-full overflow-hidden">
                 <div 

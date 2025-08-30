@@ -183,6 +183,7 @@ namespace WebComingAPI.Controllers
                 existingVideoLesson.Duration = request.Duration;
                 existingVideoLesson.Order = request.Order;
                 existingVideoLesson.CourseId = request.CourseId;
+                existingVideoLesson.IsActive = request.IsActive;
                 existingVideoLesson.UpdatedAt = DateTime.UtcNow;
 
                 var updatedVideoLesson = await _courseService.UpdateVideoLessonAsync(existingVideoLesson);

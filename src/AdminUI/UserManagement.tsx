@@ -344,16 +344,16 @@ const UserManagement: React.FC = () => {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center !space-x-4">
                     <h3 className="text-[#61dca3] font-mono font-bold">{user.username}</h3>
-                    <span className={`px-2 py-1 rounded text-xs font-mono ${
+                    <span className={`!px-2 py-1 rounded text-xs font-mono ${
                       user.role === 'admin' 
                         ? 'bg-[#61b3dc] text-black' 
                         : 'bg-[#2b4539] text-[#61dca3]'
                     }`}>
                       {user.role.toUpperCase()}
                     </span>
-                    <span className={`px-2 py-1 rounded text-xs font-mono ${
+                    <span className={`!px-2 py-1 rounded text-xs font-mono ${
                       user.isActive 
                         ? 'bg-green-600 text-white' 
                         : 'bg-red-600 text-white'
@@ -378,7 +378,7 @@ const UserManagement: React.FC = () => {
                   <select
                     value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    className="bg-black border border-[#2b4539] rounded px-2 py-1 text-xs text-[#2b4539] font-mono focus:border-[#2b4539] focus:outline-none"
+                    className="bg-black border border-[#2b4539] rounded !px-2 py-1 text-xs text-[#2b4539] font-mono focus:border-[#2b4539] focus:outline-none"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -386,7 +386,7 @@ const UserManagement: React.FC = () => {
                   
                   <button
                     onClick={() => handleToggleActive(user.id)}
-                    className={`font-mono py-1 px-3 rounded text-xs transition-all duration-300 ${
+                    className={`font-mono py-1 !px-3 rounded text-xs transition-all duration-300 ${
                       user.isActive
                         ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                         : 'bg-green-600 text-white hover:bg-green-700'
@@ -397,14 +397,14 @@ const UserManagement: React.FC = () => {
                   
                   <button
                     onClick={() => handleEdit(user)}
-                    className="bg-[#2b4539] text-[#61dca3] font-mono py-1 px-3 rounded text-xs hover:bg-[#3a5a47] transition-all duration-300"
+                    className="bg-[#2b4539] text-[#61dca3] font-mono py-1 !px-3 rounded text-xs hover:bg-[#3a5a47] transition-all duration-300"
                   >
                     EDIT
                   </button>
                   
                   <button
                     onClick={() => handleDelete(user.id)}
-                    className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                    className="bg-red-600 text-white font-mono py-1 !px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
                   >
                     DELETE
                   </button>

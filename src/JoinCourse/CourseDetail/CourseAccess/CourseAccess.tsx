@@ -158,18 +158,24 @@ const GlitchBackground = () => {
 
 interface VideoLesson {
   id: string;
+  videoId: string;
   title: string;
   duration: string;
   videoUrl: string;
   description: string;
   isWatched: boolean;
+  isActive: boolean;
+  order: number;
+  courseId: string;
 }
 
 interface CourseData {
   id: string;
+  courseId: string;
   title: string;
   description: string;
   instructor: string;
+  category: string;
   lessons: VideoLesson[];
 }
 
@@ -178,6 +184,9 @@ const CourseAccess: React.FC = () => {
   const navigate = useNavigate();
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
+  const [courseData, setCourseData] = useState<CourseData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Convert YouTube URLs to embeddable format
   const getEmbedUrl = (url: string) => {
@@ -187,309 +196,155 @@ const CourseAccess: React.FC = () => {
     } else if (url.includes('studio.youtube.com/video/')) {
       const videoId = url.split('studio.youtube.com/video/')[1].split('/')[0];
       return `https://www.youtube.com/embed/${videoId}`;
+    } else if (url.includes('youtube.com/embed/')) {
+      return url; // Already in embed format
     }
     return url;
   };
 
-  // Mock course data with the provided YouTube video URLs
-  const getCourseData = (courseNum: string): CourseData | null => {
-    // Handle both "01" and "it-01" formats
-    const cleanCourseNum = courseNum.replace('it-', '');
-    const courses: { [key: string]: CourseData } = {
-      "01": {
-        id: "course-it-01",
-        title: "Networking Essentials and Security",
-        description: "Learn the fundamentals of networking and cybersecurity principles.",
-        instructor: "Iragaki",
-        lessons: [
-          {
-            id: "lesson-1",
-            title: "Introduction to Programming Concepts",
-            duration: "15:30",
-            videoUrl: getEmbedUrl("https://youtu.be/eJKxXVDH6LI"),
-            description: "Learn the fundamental concepts of programming and software development.",
-            isWatched: false
-          },
-          {
-            id: "lesson-2",
-            title: "Advanced Programming Techniques",
-            duration: "22:45",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/oqHMwSsqrKQ/edit"),
-            description: "Deep dive into advanced programming methodologies and best practices.",
-            isWatched: false
-          },
-          {
-            id: "lesson-3",
-            title: "Database Integration & Management",
-            duration: "18:20",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/yaFzsQa2pCE/edit"),
-            description: "Understanding database integration and management in IT systems.",
-            isWatched: false
-          },
-          {
-            id: "lesson-4",
-            title: "System Architecture & Design",
-            duration: "25:10",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/tiwTvgl8mwU/edit"),
-            description: "Learn system architecture principles and design patterns.",
-            isWatched: false
-          },
-          {
-            id: "lesson-5",
-            title: "Security Implementation",
-            duration: "20:15",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/qlJYoTa6LVw/edit"),
-            description: "Implementing security measures in IT applications and systems.",
-            isWatched: false
-          },
-          {
-            id: "lesson-6",
-            title: "Deployment & DevOps Practices",
-            duration: "28:30",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/MyFu8qgL6O8/edit"),
-            description: "Modern deployment strategies and DevOps implementation.",
-            isWatched: false
-          }
-        ]
-      },
-      "02": {
-        id: "course-it-02",
-        title: "Database Management with SQL & NoSQL",
-        description: "Master database design, SQL queries, and NoSQL databases.",
-        instructor: "Iragaki",
-        lessons: [
-          {
-            id: "lesson-1",
-            title: "Database Design Fundamentals",
-            duration: "20:30",
-            videoUrl: getEmbedUrl("https://youtu.be/eJKxXVDH6LI"),
-            description: "Learn the principles of good database design and normalization.",
-            isWatched: false
-          },
-          {
-            id: "lesson-2",
-            title: "SQL Basics and Queries",
-            duration: "25:45",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/oqHMwSsqrKQ/edit"),
-            description: "Master basic SQL commands and query writing techniques.",
-            isWatched: false
-          },
-          {
-            id: "lesson-3",
-            title: "Advanced SQL Operations",
-            duration: "28:20",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/yaFzsQa2pCE/edit"),
-            description: "Complex joins, subqueries, and advanced SQL operations.",
-            isWatched: false
-          },
-          {
-            id: "lesson-4",
-            title: "Introduction to NoSQL",
-            duration: "22:10",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/tiwTvgl8mwU/edit"),
-            description: "Understanding NoSQL databases and when to use them.",
-            isWatched: false
-          },
-          {
-            id: "lesson-5",
-            title: "Database Performance Optimization",
-            duration: "26:15",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/qlJYoTa6LVw/edit"),
-            description: "Techniques for optimizing database performance and indexing.",
-            isWatched: false
-          },
-          {
-            id: "lesson-6",
-            title: "Database Security & Backup",
-            duration: "24:40",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/MyFu8qgL6O8/edit"),
-            description: "Implementing database security measures and backup strategies.",
-            isWatched: false
-          }
-        ]
-      },
-      "03": {
-        id: "course-it-03",
-        title: "Cloud Computing Fundamentals",
-        description: "Explore cloud platforms, services, and deployment strategies.",
-        instructor: "Iragaki",
-        lessons: [
-          {
-            id: "lesson-1",
-            title: "Introduction to Cloud Computing",
-            duration: "18:30",
-            videoUrl: getEmbedUrl("https://youtu.be/eJKxXVDH6LI"),
-            description: "Understanding cloud computing concepts and benefits.",
-            isWatched: false
-          },
-          {
-            id: "lesson-2",
-            title: "Cloud Service Models",
-            duration: "22:45",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/oqHMwSsqrKQ/edit"),
-            description: "Learn about IaaS, PaaS, and SaaS service models.",
-            isWatched: false
-          },
-          {
-            id: "lesson-3",
-            title: "Cloud Deployment Strategies",
-            duration: "25:20",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/yaFzsQa2pCE/edit"),
-            description: "Public, private, and hybrid cloud deployment models.",
-            isWatched: false
-          },
-          {
-            id: "lesson-4",
-            title: "Cloud Security Best Practices",
-            duration: "28:10",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/tiwTvgl8mwU/edit"),
-            description: "Implementing security in cloud environments.",
-            isWatched: false
-          },
-          {
-            id: "lesson-5",
-            title: "Cloud Migration Strategies",
-            duration: "24:15",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/qlJYoTa6LVw/edit"),
-            description: "Planning and executing cloud migration projects.",
-            isWatched: false
-          },
-          {
-            id: "lesson-6",
-            title: "Cloud Cost Optimization",
-            duration: "21:30",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/MyFu8qgL6O8/edit"),
-            description: "Managing and optimizing cloud infrastructure costs.",
-            isWatched: false
-          }
-        ]
-      },
-      "04": {
-        id: "course-it-04",
-        title: "Introduction to Cybersecurity",
-        description: "Learn cybersecurity fundamentals and best practices.",
-        instructor: "Iragaki",
-        lessons: [
-          {
-            id: "lesson-1",
-            title: "Cybersecurity Fundamentals",
-            duration: "20:30",
-            videoUrl: getEmbedUrl("https://youtu.be/eJKxXVDH6LI"),
-            description: "Basic concepts and principles of cybersecurity.",
-            isWatched: false
-          },
-          {
-            id: "lesson-2",
-            title: "Threat Landscape Analysis",
-            duration: "25:45",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/oqHMwSsqrKQ/edit"),
-            description: "Understanding current cybersecurity threats and risks.",
-            isWatched: false
-          },
-          {
-            id: "lesson-3",
-            title: "Network Security Essentials",
-            duration: "28:20",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/yaFzsQa2pCE/edit"),
-            description: "Securing network infrastructure and communications.",
-            isWatched: false
-          },
-          {
-            id: "lesson-4",
-            title: "Identity and Access Management",
-            duration: "22:10",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/tiwTvgl8mwU/edit"),
-            description: "Managing user identities and access controls.",
-            isWatched: false
-          },
-          {
-            id: "lesson-5",
-            title: "Incident Response Planning",
-            duration: "26:15",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/qlJYoTa6LVw/edit"),
-            description: "Developing and implementing incident response procedures.",
-            isWatched: false
-          },
-          {
-            id: "lesson-6",
-            title: "Security Awareness Training",
-            duration: "19:40",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/MyFu8qgL6O8/edit"),
-            description: "Building security awareness across organizations.",
-            isWatched: false
-          }
-        ]
-      },
-      "05": {
-        id: "course-it-05",
-        title: "Foundations of Information Technology",
-        description: "Build a solid foundation in IT concepts and practices.",
-        instructor: "Iragaki",
-        lessons: [
-          {
-            id: "lesson-1",
-            title: "IT Fundamentals Overview",
-            duration: "17:30",
-            videoUrl: getEmbedUrl("https://youtu.be/eJKxXVDH6LI"),
-            description: "Introduction to information technology concepts.",
-            isWatched: false
-          },
-          {
-            id: "lesson-2",
-            title: "Computer Hardware Essentials",
-            duration: "23:45",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/oqHMwSsqrKQ/edit"),
-            description: "Understanding computer hardware components and architecture.",
-            isWatched: false
-          },
-          {
-            id: "lesson-3",
-            title: "Operating Systems Fundamentals",
-            duration: "26:20",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/yaFzsQa2pCE/edit"),
-            description: "Core concepts of operating systems and their functions.",
-            isWatched: false
-          },
-          {
-            id: "lesson-4",
-            title: "Networking Basics",
-            duration: "24:10",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/tiwTvgl8mwU/edit"),
-            description: "Introduction to computer networking and protocols.",
-            isWatched: false
-          },
-          {
-            id: "lesson-5",
-            title: "Data Management Principles",
-            duration: "21:15",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/qlJYoTa6LVw/edit"),
-            description: "Understanding data storage, backup, and recovery.",
-            isWatched: false
-          },
-          {
-            id: "lesson-6",
-            title: "IT Service Management",
-            duration: "25:30",
-            videoUrl: getEmbedUrl("https://studio.youtube.com/video/MyFu8qgL6O8/edit"),
-            description: "ITIL framework and service management best practices.",
-            isWatched: false
-          }
-        ]
-      }
-    };
+  // Fetch course and video data from API
+  const fetchCourseData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    return courses[cleanCourseNum] || courses["01"];
+      console.log('Original courseId from URL:', courseId);
+      
+      // Fetch course details
+      const courseResponse = await fetch('http://localhost:5002/api/courses');
+      if (!courseResponse.ok) {
+        throw new Error('Failed to fetch courses');
+      }
+      
+      const courseResult = await courseResponse.json();
+      if (!courseResult.success) {
+        throw new Error(courseResult.message || 'Failed to load courses');
+      }
+
+      console.log('Available courses:', courseResult.data.map((c: any) => c.courseId));
+
+      // For IT courses, the URL format is /course/:courseId/access
+      // Database has courses like: course-it-01, course-it-02, etc.
+      // URL courseId could be: 01, it-01, it-course-it-01, course-it-01, etc.
+      
+      let course = null;
+      
+      // Try exact match first
+      course = courseResult.data.find((c: any) => c.courseId === courseId);
+      if (course) {
+        console.log('Found exact match:', course.courseId);
+      } else {
+        // Handle special case: it-course-it-01 -> course-it-01
+        if (courseId?.startsWith('it-course-it-')) {
+          const courseNumber = courseId.replace('it-course-it-', '');
+          const mappedId = `course-it-${courseNumber}`;
+          course = courseResult.data.find((c: any) => c.courseId === mappedId);
+          if (course) {
+            console.log('Found with it-course-it- mapping:', course.courseId);
+          }
+        }
+        
+        if (!course) {
+          // Try with course-it- prefix (most common case for IT courses)
+          const withPrefix = `course-it-${courseId}`;
+          course = courseResult.data.find((c: any) => c.courseId === withPrefix);
+          if (course) {
+            console.log('Found with course-it- prefix:', course.courseId);
+          }
+        }
+        
+        if (!course) {
+          // Try finding IT courses and match by number
+          const itCourses = courseResult.data.filter((c: any) => c.courseId.startsWith('course-it-'));
+          course = itCourses.find((c: any) => {
+            const courseNumber = c.courseId.replace('course-it-', '');
+            return courseNumber === courseId || courseNumber === courseId?.replace(/^it-/, '');
+          });
+          
+          if (course) {
+            console.log('Found IT course by number:', course.courseId);
+          }
+        }
+      }
+
+      if (!course) {
+        console.error('No course found. Available courses:', courseResult.data.map((c: any) => c.courseId));
+        const availableCourses = courseResult.data.map((c: any) => c.courseId).join(', ');
+        throw new Error(`Course not found. Available courses: ${availableCourses}`);
+      }
+
+      // Fetch video lessons for this course
+      const videosResponse = await fetch(`http://localhost:5002/api/videos/course/${course.courseId}`);
+      if (!videosResponse.ok) {
+        throw new Error('Failed to fetch video lessons');
+      }
+
+      const videosResult = await videosResponse.json();
+      if (!videosResult.success) {
+        throw new Error(videosResult.message || 'Failed to load video lessons');
+      }
+
+      // Filter only active videos and sort by order
+      const activeVideos = videosResult.data
+        .filter((video: any) => video.isActive)
+        .sort((a: any, b: any) => a.order - b.order)
+        .map((video: any) => ({
+          id: video.id,
+          videoId: video.videoId,
+          title: video.title,
+          duration: video.duration,
+          videoUrl: getEmbedUrl(video.videoUrl),
+          description: video.description,
+          isWatched: false,
+          isActive: video.isActive,
+          order: video.order,
+          courseId: video.courseId
+        }));
+
+      const courseData: CourseData = {
+        id: course.id,
+        courseId: course.courseId,
+        title: course.title,
+        description: course.description,
+        instructor: course.instructor,
+        category: course.category,
+        lessons: activeVideos
+      };
+
+      setCourseData(courseData);
+    } catch (err) {
+      console.error('Error fetching course data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load course data');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const courseData = getCourseData(courseId || "01");
+  useEffect(() => {
+    fetchCourseData();
+  }, [courseId]);
 
   useEffect(() => {
-    // Load watched videos from localStorage
-    const savedProgress = localStorage.getItem(`course-progress-${courseId}`);
-    if (savedProgress) {
-      setWatchedVideos(new Set(JSON.parse(savedProgress)));
+    // Load watched videos from localStorage, but only for videos that still exist
+    if (courseData && courseData.lessons.length > 0) {
+      const savedProgress = localStorage.getItem(`course-progress-${courseId}`);
+      if (savedProgress) {
+        const savedVideoIds = JSON.parse(savedProgress);
+        const currentVideoIds = courseData.lessons.map(lesson => lesson.id);
+        // Only keep watched videos that still exist in the current course
+        const validWatchedVideos = savedVideoIds.filter((id: string) => currentVideoIds.includes(id));
+        setWatchedVideos(new Set(validWatchedVideos));
+        
+        // Update localStorage with cleaned data
+        if (validWatchedVideos.length !== savedVideoIds.length) {
+          localStorage.setItem(
+            `course-progress-${courseId}`,
+            JSON.stringify(validWatchedVideos)
+          );
+        }
+      }
     }
-  }, [courseId]);
+  }, [courseId, courseData]);
 
   const markVideoAsWatched = (lessonId: string) => {
     const newWatchedVideos = new Set(watchedVideos);
@@ -508,18 +363,55 @@ const CourseAccess: React.FC = () => {
   };
 
   const getCompletionPercentage = () => {
-    if (!courseData) return 0;
-    return Math.round((watchedVideos.size / courseData.lessons.length) * 100);
+    if (!courseData || courseData.lessons.length === 0) return 0;
+    const validWatchedCount = Math.min(watchedVideos.size, courseData.lessons.length);
+    return Math.round((validWatchedCount / courseData.lessons.length) * 100);
   };
 
-  if (!courseData) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen relative">
+        <GlitchBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
+            <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ LOADING COURSE... ]</h1>
+            <div className="text-[#61dca3] font-mono">Please wait while we load your course content.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !courseData) {
     return (
       <div className="min-h-screen relative">
         <GlitchBackground />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
             <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ COURSE NOT FOUND ]</h1>
-            <p className="text-[#61dca3] font-mono mb-6">The course you're looking for doesn't exist.</p>
+            <p className="text-[#61dca3] font-mono mb-6">
+              {error || "The course you're looking for doesn't exist."}
+            </p>
+            <button
+              onClick={() => navigate("/join-course")}
+              className="bg-transparent border-2 border-[#61dca3] text-[#61dca3] font-mono py-2 px-6 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
+            >
+              [ ← BACK TO COURSES ]
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!courseData.lessons || courseData.lessons.length === 0) {
+    return (
+      <div className="min-h-screen relative">
+        <GlitchBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center bg-black/90 border-2 border-[#61b3dc] rounded-lg p-8 max-w-md mx-4">
+            <h1 className="text-2xl font-mono text-[#61b3dc] mb-4">[ NO LESSONS AVAILABLE ]</h1>
+            <p className="text-[#61dca3] font-mono mb-6">This course doesn't have any active video lessons yet.</p>
             <button
               onClick={() => navigate("/join-course")}
               className="bg-transparent border-2 border-[#61dca3] text-[#61dca3] font-mono py-2 px-6 rounded hover:bg-[#61dca3] hover:text-black transition-all duration-300 cursor-pointer transform hover:scale-105"
@@ -693,7 +585,7 @@ const CourseAccess: React.FC = () => {
             <div className="mt-8 p-4 border-2 border-[#2b4539] rounded bg-[#2b4539]/10">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[#61b3dc] font-mono font-bold">COURSE PROGRESS</span>
-                <span className="text-[#61dca3] font-mono font-bold">{watchedVideos.size}/{courseData.lessons.length}</span>
+                <span className="text-[#61dca3] font-mono font-bold">{Math.min(watchedVideos.size, courseData.lessons.length)}/{courseData.lessons.length}</span>
               </div>
               <div className="w-full h-3 bg-[#2b4539] rounded-full overflow-hidden">
                 <div 

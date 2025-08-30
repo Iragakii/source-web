@@ -144,6 +144,8 @@ namespace WebComingAPI.DTOs
         [Required]
         [StringLength(50)]
         public string CourseId { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateUserRoleRequest
