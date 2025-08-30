@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebComingAPI.Services;
 using WebComingAPI.DTOs;
@@ -6,60 +5,24 @@ using WebComingAPI.DTOs;
 namespace WebComingAPI.Controllers
 {
     [ApiController]
-    [Route("api/admin")]
-    [Authorize(Roles = "admin")]
-    public class AdminController : ControllerBase
+    [Route("api/database")]
+    public class DatabaseController : ControllerBase
     {
-        private readonly IUserService _userService;
         private readonly IDataSeedService _dataSeedService;
-        private readonly ILogger<AdminController> _logger;
+        private readonly ILogger<DatabaseController> _logger;
 
-        public AdminController(IUserService userService, IDataSeedService dataSeedService, ILogger<AdminController> logger)
+        public DatabaseController(IDataSeedService dataSeedService, ILogger<DatabaseController> logger)
         {
-            _userService = userService;
             _dataSeedService = dataSeedService;
             _logger = logger;
         }
 
-        [HttpGet("users")]
-        public async Task<ActionResult<ApiResponse<object>>> GetAllUsers()
-        {
-            try
-            {
-                var users = await _userService.GetAllUsersAsync();
-                var userList = users.Select(u => new
-                {
-                    u.Id,
-                    u.Username,
-                    u.Email,
-                    u.Role,
-                    u.CreatedAt
-                }).ToList();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Data = userList,
-                    Message = $"Retrieved {userList.Count} users"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving users");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = $"Error retrieving users: {ex.Message}"
-                });
-            }
-        }
-
-        [HttpPost("reseed-database")]
+        [HttpPost("reseed")]
         public async Task<ActionResult<ApiResponse<object>>> ReseedDatabase()
         {
             try
             {
-                _logger.LogInformation("Admin requested database reseed");
+                _logger.LogInformation("Database reseed requested");
                 await _dataSeedService.ReseedAllDataAsync();
                 
                 return Ok(new ApiResponse<object>
@@ -80,12 +43,12 @@ namespace WebComingAPI.Controllers
             }
         }
 
-        [HttpPost("clear-database")]
+        [HttpPost("clear")]
         public async Task<ActionResult<ApiResponse<object>>> ClearDatabase()
         {
             try
             {
-                _logger.LogInformation("Admin requested database clear");
+                _logger.LogInformation("Database clear requested");
                 await _dataSeedService.ClearAllDataAsync();
                 
                 return Ok(new ApiResponse<object>

@@ -93,7 +93,7 @@ class CourseService {
   // Course methods
   async getAllCourses(): Promise<ApiResponse<Course[]>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course`, {
+      const response = await fetch(`${API_BASE_URL}/courses`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -110,7 +110,7 @@ class CourseService {
 
   async getCourseById(id: string): Promise<ApiResponse<Course>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -127,7 +127,7 @@ class CourseService {
 
   async createCourse(courseData: CreateCourseRequest): Promise<ApiResponse<Course>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course`, {
+      const response = await fetch(`${API_BASE_URL}/courses`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(courseData),
@@ -145,7 +145,7 @@ class CourseService {
 
   async updateCourse(id: string, courseData: Partial<CreateCourseRequest>): Promise<ApiResponse<Course>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(courseData),
@@ -163,7 +163,7 @@ class CourseService {
 
   async deleteCourse(id: string): Promise<ApiResponse<void>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
       });
@@ -181,7 +181,7 @@ class CourseService {
   // Video methods
   async getAllVideos(): Promise<ApiResponse<VideoLesson[]>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/video`, {
+      const response = await fetch(`${API_BASE_URL}/videos`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -198,7 +198,7 @@ class CourseService {
 
   async getVideosByCourse(courseId: string): Promise<ApiResponse<VideoLesson[]>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/video/course/${courseId}`, {
+      const response = await fetch(`${API_BASE_URL}/videos/course/${courseId}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
@@ -215,7 +215,7 @@ class CourseService {
 
   async createVideo(videoData: CreateVideoRequest): Promise<ApiResponse<VideoLesson>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/video`, {
+      const response = await fetch(`${API_BASE_URL}/videos`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(videoData),
@@ -233,7 +233,7 @@ class CourseService {
 
   async updateVideo(id: string, videoData: Partial<CreateVideoRequest>): Promise<ApiResponse<VideoLesson>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/video/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/videos/${id}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(videoData),
@@ -251,7 +251,7 @@ class CourseService {
 
   async deleteVideo(id: string): Promise<ApiResponse<void>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/video/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/videos/${id}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
       });
@@ -269,7 +269,7 @@ class CourseService {
   // Course registration methods
   async registerForCourse(registrationData: CourseRegistrationRequest): Promise<ApiResponse<CourseRegistration>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/course/register`, {
+      const response = await fetch(`${API_BASE_URL}/courses/register`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(registrationData),

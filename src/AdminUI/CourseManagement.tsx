@@ -39,40 +39,6 @@ const CourseManagement: React.FC = () => {
     isVideo: true,
   });
 
-  // Mock data for development - replace with API calls
-  const mockCourses: Course[] = [
-    {
-      id: "1",
-      courseId: "course-it-01",
-      title: "Networking Essentials and Security",
-      description: "Learn the fundamentals of networking and cybersecurity principles.",
-      duration: "8 weeks",
-      level: "Beginner",
-      instructor: "John Smith",
-      imageUrl: "https://i.pinimg.com/736x/63/1c/2d/631c2d5fc2599cff65f5144507dbce4e.jpg",
-      category: "IT",
-      videoId: "NET01",
-      isVideo: true,
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z"
-    },
-    {
-      id: "2",
-      courseId: "course-cyber-03",
-      title: "Digital Forensics & Incident Response",
-      description: "Learn digital evidence collection, forensic analysis, and incident response procedures.",
-      duration: "14 weeks",
-      level: "Advanced",
-      instructor: "Mike Rodriguez",
-      imageUrl: "https://i.pinimg.com/736x/7c/3a/8d/7c3a8d4c4b4e4e4e4e4e4e4e4e4e4e4e.jpg",
-      category: "Cyber",
-      videoId: "FOR03",
-      isVideo: false,
-      isActive: true,
-      createdAt: "2024-01-02T00:00:00Z"
-    }
-  ];
-
   useEffect(() => {
     loadCourses();
   }, []);
@@ -80,10 +46,40 @@ const CourseManagement: React.FC = () => {
   const loadCourses = async () => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await courseService.getAllCourses();
-      setCourses(mockCourses);
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5002/api/courses', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          // Transform backend data to frontend format
+          const transformedCourses = result.data.map((course: any) => ({
+            id: course.id,
+            courseId: course.courseId,
+            title: course.title,
+            description: course.description,
+            duration: course.duration,
+            level: course.level,
+            instructor: course.instructor,
+            imageUrl: course.imageUrl,
+            category: course.category,
+            videoId: course.videoId,
+            isVideo: course.isVideo,
+            isActive: course.isActive,
+            createdAt: course.createdAt
+          }));
+          setCourses(transformedCourses);
+        }
+      } else {
+        showNotification("Failed to load courses", "error");
+      }
     } catch (error) {
+      console.error("Error loading courses:", error);
       showNotification("Failed to load courses", "error");
     } finally {
       setIsLoading(false);
@@ -93,24 +89,46 @@ const CourseManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('authToken');
+      
       if (editingCourse) {
         // Update course
-        const updatedCourse = { ...editingCourse, ...formData };
-        setCourses(courses.map(c => c.id === editingCourse.id ? updatedCourse : c));
-        showNotification("Course updated successfully!", "success");
+        const response = await fetch(`http://localhost:5002/api/courses/${editingCourse.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          showNotification("Course updated successfully!", "success");
+          loadCourses(); // Reload courses
+        } else {
+          showNotification("Failed to update course", "error");
+        }
       } else {
         // Create new course
-        const newCourse: Course = {
-          id: Date.now().toString(),
-          ...formData,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        };
-        setCourses([...courses, newCourse]);
-        showNotification("Course created successfully!", "success");
+        const response = await fetch('http://localhost:5002/api/courses', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          showNotification("Course created successfully!", "success");
+          loadCourses(); // Reload courses
+        } else {
+          showNotification("Failed to create course", "error");
+        }
       }
       resetForm();
     } catch (error) {
+      console.error("Error saving course:", error);
       showNotification("Failed to save course", "error");
     }
   };
@@ -135,9 +153,23 @@ const CourseManagement: React.FC = () => {
   const handleDelete = async (courseId: string) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
       try {
-        setCourses(courses.filter(c => c.id !== courseId));
-        showNotification("Course deleted successfully!", "success");
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:5002/api/courses/${courseId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          showNotification("Course deleted successfully!", "success");
+          loadCourses(); // Reload courses
+        } else {
+          showNotification("Failed to delete course", "error");
+        }
       } catch (error) {
+        console.error("Error deleting course:", error);
         showNotification("Failed to delete course", "error");
       }
     }
@@ -167,6 +199,9 @@ const CourseManagement: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const itCourses = filteredCourses.filter(c => c.category === "IT");
+  const cyberCourses = filteredCourses.filter(c => c.category === "Cyber");
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -178,6 +213,22 @@ const CourseManagement: React.FC = () => {
         >
           [ + ADD COURSE ]
         </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+          <div className="text-2xl font-mono text-[#61dca3] font-bold">{courses.length}</div>
+          <div className="text-sm font-mono text-[#2b4539]">Total Courses</div>
+        </div>
+        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+          <div className="text-2xl font-mono text-[#61b3dc] font-bold">{itCourses.length}</div>
+          <div className="text-sm font-mono text-[#2b4539]">IT Courses</div>
+        </div>
+        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+          <div className="text-2xl font-mono text-[#61dca3] font-bold">{cyberCourses.length}</div>
+          <div className="text-sm font-mono text-[#2b4539]">Cyber Courses</div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -198,8 +249,8 @@ const CourseManagement: React.FC = () => {
             className="bg-black border border-[#2b4539] rounded px-4 py-2 text-[#61dca3] font-mono focus:border-[#61dca3] focus:outline-none"
           >
             <option value="all">All Categories</option>
-            <option value="IT">IT</option>
-            <option value="Cyber">Cybersecurity</option>
+            <option value="IT">IT ({itCourses.length})</option>
+            <option value="Cyber">Cybersecurity ({cyberCourses.length})</option>
           </select>
         </div>
       </div>
@@ -210,47 +261,116 @@ const CourseManagement: React.FC = () => {
           <div className="text-[#61dca3] font-mono">Loading courses...</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <div
-              key={course.id}
-              className="bg-black/50 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
-            >
-              <img
-                src={course.imageUrl}
-                alt={course.title}
-                className="w-full h-32 object-cover rounded mb-4"
-              />
-              <div className="space-y-2">
-                <h3 className="text-[#61dca3] font-mono font-bold text-sm">{course.title}</h3>
-                <p className="text-[#61b3dc] font-mono text-xs">{course.courseId}</p>
-                <p className="text-gray-400 text-xs line-clamp-2">{course.description}</p>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#2b4539] font-mono">{course.category}</span>
-                  <span className="text-[#2b4539] font-mono">{course.level}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#61b3dc] font-mono">{course.instructor}</span>
-                  <span className="text-[#61b3dc] font-mono">{course.duration}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    onClick={() => handleEdit(course)}
-                    className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+        <>
+          {/* IT Courses Section */}
+          {(filterCategory === "all" || filterCategory === "IT") && itCourses.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-mono text-[#61b3dc] font-bold">[ IT COURSES - {itCourses.length} ]</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {itCourses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="bg-black/50 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
                   >
-                    EDIT
-                  </button>
-                  <button
-                    onClick={() => handleDelete(course.id)}
-                    className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
-                  >
-                    DELETE
-                  </button>
-                </div>
+                    <img
+                      src={course.imageUrl}
+                      alt={course.title}
+                      className="w-full h-32 object-cover rounded mb-4"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=Course+Image';
+                      }}
+                    />
+                    <div className="space-y-2">
+                      <h4 className="text-[#61dca3] font-mono font-bold text-sm">{course.title}</h4>
+                      <p className="text-[#61b3dc] font-mono text-xs">{course.courseId}</p>
+                      <p className="text-gray-400 text-xs line-clamp-2">{course.description}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#2b4539] font-mono">{course.category}</span>
+                        <span className="text-[#2b4539] font-mono">{course.level}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#61b3dc] font-mono">{course.instructor}</span>
+                        <span className="text-[#61b3dc] font-mono">{course.duration}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2">
+                        <button
+                          onClick={() => handleEdit(course)}
+                          className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          onClick={() => handleDelete(course.id)}
+                          className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                        >
+                          DELETE
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* Cyber Courses Section */}
+          {(filterCategory === "all" || filterCategory === "Cyber") && cyberCourses.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-mono text-[#61dca3] font-bold">[ CYBERSECURITY COURSES - {cyberCourses.length} ]</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {cyberCourses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="bg-black/50 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
+                  >
+                    <img
+                      src={course.imageUrl}
+                      alt={course.title}
+                      className="w-full h-32 object-cover rounded mb-4"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=Course+Image';
+                      }}
+                    />
+                    <div className="space-y-2">
+                      <h4 className="text-[#61dca3] font-mono font-bold text-sm">{course.title}</h4>
+                      <p className="text-[#61b3dc] font-mono text-xs">{course.courseId}</p>
+                      <p className="text-gray-400 text-xs line-clamp-2">{course.description}</p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#2b4539] font-mono">{course.category}</span>
+                        <span className="text-[#2b4539] font-mono">{course.level}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#61b3dc] font-mono">{course.instructor}</span>
+                        <span className="text-[#61b3dc] font-mono">{course.duration}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2">
+                        <button
+                          onClick={() => handleEdit(course)}
+                          className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          onClick={() => handleDelete(course.id)}
+                          className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                        >
+                          DELETE
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* No courses found */}
+          {filteredCourses.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-[#61dca3] font-mono">No courses found matching your criteria.</div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Modal */}

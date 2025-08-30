@@ -10,10 +10,7 @@ namespace WebComingAPI.Models
         public string Id { get; set; } = string.Empty;
 
         [BsonElement("courseId")]
-        public string CourseId { get; set; } = string.Empty; // e.g., "course-it-01", "course-cyber-03"
-
-        [BsonElement("name")]
-        public string Name { get; set; } = string.Empty;
+        public string CourseId { get; set; } = string.Empty;
 
         [BsonElement("title")]
         public string Title { get; set; } = string.Empty;
@@ -34,16 +31,13 @@ namespace WebComingAPI.Models
         public string ImageUrl { get; set; } = string.Empty;
 
         [BsonElement("category")]
-        public string Category { get; set; } = string.Empty; // "IT", "Cyber", etc.
+        public string Category { get; set; } = string.Empty;
 
         [BsonElement("videoId")]
-        public string VideoId { get; set; } = string.Empty; // For card display
+        public string VideoId { get; set; } = string.Empty;
 
         [BsonElement("isVideo")]
         public bool IsVideo { get; set; } = true;
-
-        [BsonElement("lessons")]
-        public List<VideoLesson> Lessons { get; set; } = new List<VideoLesson>();
 
         [BsonElement("isActive")]
         public bool IsActive { get; set; } = true;
@@ -90,39 +84,5 @@ namespace WebComingAPI.Models
 
         [BsonElement("updatedAt")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    }
-
-    public class CourseRegistration
-    {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
-
-        [BsonElement("userId")]
-        public string? UserId { get; set; }
-
-        [BsonElement("studentName")]
-        public string StudentName { get; set; } = string.Empty;
-
-        [BsonElement("email")]
-        public string Email { get; set; } = string.Empty;
-
-        [BsonElement("phone")]
-        public string Phone { get; set; } = string.Empty;
-
-        [BsonElement("courseName")]
-        public string CourseName { get; set; } = string.Empty;
-
-        [BsonElement("experience")]
-        public string Experience { get; set; } = string.Empty;
-
-        [BsonElement("status")]
-        public string Status { get; set; } = "pending"; // pending, approved, rejected
-
-        [BsonElement("registrationDate")]
-        public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
-
-        [BsonElement("notes")]
-        public string? Notes { get; set; }
     }
 }

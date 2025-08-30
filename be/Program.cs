@@ -21,6 +21,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ITestResultService, TestResultService>();
+builder.Services.AddScoped<IDataSeedService, DataSeedService>();
 
 // Configure JWT authentication
 var jwtSettings = builder.Configuration.GetSection("JWT");
@@ -92,5 +93,13 @@ app.MapGet("/health", () => new {
     status = "healthy", 
     timestamp = DateTime.UtcNow 
 });
+
+// Seed data on startup
+using (var scope = app.Services.CreateScope())
+{
+    var seedService = scope.ServiceProvider.GetRequiredService<IDataSeedService>();
+    await seedService.SeedCoursesAsync();
+    await seedService.SeedVideosAsync();
+}
 
 app.Run();

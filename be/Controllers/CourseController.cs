@@ -7,7 +7,7 @@ using WebComingAPI.DTOs;
 namespace WebComingAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/courses")]
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
@@ -24,12 +24,14 @@ namespace WebComingAPI.Controllers
         {
             try
             {
+                _logger.LogInformation("Retrieving all courses");
                 var courses = await _courseService.GetAllCoursesAsync();
+                
                 return Ok(new ApiResponse<List<Course>>
                 {
                     Success = true,
                     Data = courses,
-                    Message = "Courses retrieved successfully"
+                    Message = $"Successfully retrieved {courses.Count} courses"
                 });
             }
             catch (Exception ex)
@@ -38,7 +40,7 @@ namespace WebComingAPI.Controllers
                 return StatusCode(500, new ApiResponse<List<Course>>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error retrieving courses: {ex.Message}"
                 });
             }
         }
@@ -67,44 +69,35 @@ namespace WebComingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving course with id {CourseId}", id);
+                _logger.LogError(ex, "Error retrieving course {CourseId}", id);
                 return StatusCode(500, new ApiResponse<Course>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error retrieving course: {ex.Message}"
                 });
             }
         }
 
-        [HttpGet("course-id/{courseId}")]
-        public async Task<ActionResult<ApiResponse<Course>>> GetCourseByCourseId(string courseId)
+        [HttpGet("category/{category}")]
+        public async Task<ActionResult<ApiResponse<List<Course>>>> GetCoursesByCategory(string category)
         {
             try
             {
-                var course = await _courseService.GetCourseByCourseIdAsync(courseId);
-                if (course == null)
-                {
-                    return NotFound(new ApiResponse<Course>
-                    {
-                        Success = false,
-                        Message = "Course not found"
-                    });
-                }
-
-                return Ok(new ApiResponse<Course>
+                var courses = await _courseService.GetCoursesByCategoryAsync(category);
+                return Ok(new ApiResponse<List<Course>>
                 {
                     Success = true,
-                    Data = course,
-                    Message = "Course retrieved successfully"
+                    Data = courses,
+                    Message = $"Retrieved {courses.Count} courses in {category} category"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving course with courseId {CourseId}", courseId);
-                return StatusCode(500, new ApiResponse<Course>
+                _logger.LogError(ex, "Error retrieving courses by category {Category}", category);
+                return StatusCode(500, new ApiResponse<List<Course>>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error retrieving courses: {ex.Message}"
                 });
             }
         }
@@ -121,17 +114,6 @@ namespace WebComingAPI.Controllers
                     {
                         Success = false,
                         Message = "Invalid course data"
-                    });
-                }
-
-                // Check if course with same courseId already exists
-                var existingCourse = await _courseService.GetCourseByCourseIdAsync(request.CourseId);
-                if (existingCourse != null)
-                {
-                    return Conflict(new ApiResponse<Course>
-                    {
-                        Success = false,
-                        Message = "Course with this ID already exists"
                     });
                 }
 
@@ -167,7 +149,7 @@ namespace WebComingAPI.Controllers
                 return StatusCode(500, new ApiResponse<Course>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error creating course: {ex.Message}"
                 });
             }
         }
@@ -178,15 +160,6 @@ namespace WebComingAPI.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new ApiResponse<Course>
-                    {
-                        Success = false,
-                        Message = "Invalid course data"
-                    });
-                }
-
                 var existingCourse = await _courseService.GetCourseByIdAsync(id);
                 if (existingCourse == null)
                 {
@@ -194,17 +167,6 @@ namespace WebComingAPI.Controllers
                     {
                         Success = false,
                         Message = "Course not found"
-                    });
-                }
-
-                // Check if another course with same courseId exists (excluding current course)
-                var courseWithSameId = await _courseService.GetCourseByCourseIdAsync(request.CourseId);
-                if (courseWithSameId != null && courseWithSameId.Id != id)
-                {
-                    return Conflict(new ApiResponse<Course>
-                    {
-                        Success = false,
-                        Message = "Another course with this ID already exists"
                     });
                 }
 
@@ -230,11 +192,11 @@ namespace WebComingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating course with id {CourseId}", id);
+                _logger.LogError(ex, "Error updating course {CourseId}", id);
                 return StatusCode(500, new ApiResponse<Course>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error updating course: {ex.Message}"
                 });
             }
         }
@@ -264,73 +226,11 @@ namespace WebComingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting course with id {CourseId}", id);
+                _logger.LogError(ex, "Error deleting course {CourseId}", id);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Internal server error"
-                });
-            }
-        }
-
-        [HttpPatch("{id}/toggle-active")]
-        [Authorize(Roles = "admin")]
-        public async Task<ActionResult<ApiResponse<Course>>> ToggleCourseActive(string id)
-        {
-            try
-            {
-                var course = await _courseService.GetCourseByIdAsync(id);
-                if (course == null)
-                {
-                    return NotFound(new ApiResponse<Course>
-                    {
-                        Success = false,
-                        Message = "Course not found"
-                    });
-                }
-
-                course.IsActive = !course.IsActive;
-                course.UpdatedAt = DateTime.UtcNow;
-
-                var updatedCourse = await _courseService.UpdateCourseAsync(course);
-                return Ok(new ApiResponse<Course>
-                {
-                    Success = true,
-                    Data = updatedCourse,
-                    Message = $"Course {(updatedCourse.IsActive ? "activated" : "deactivated")} successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error toggling course active status with id {CourseId}", id);
-                return StatusCode(500, new ApiResponse<Course>
-                {
-                    Success = false,
-                    Message = "Internal server error"
-                });
-            }
-        }
-
-        [HttpGet("category/{category}")]
-        public async Task<ActionResult<ApiResponse<List<Course>>>> GetCoursesByCategory(string category)
-        {
-            try
-            {
-                var courses = await _courseService.GetCoursesByCategoryAsync(category);
-                return Ok(new ApiResponse<List<Course>>
-                {
-                    Success = true,
-                    Data = courses,
-                    Message = "Courses retrieved successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving courses by category {Category}", category);
-                return StatusCode(500, new ApiResponse<List<Course>>
-                {
-                    Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error deleting course: {ex.Message}"
                 });
             }
         }

@@ -29,46 +29,6 @@ const UserManagement: React.FC = () => {
     confirmPassword: "",
   });
 
-  // Mock data for development - replace with API calls
-  const mockUsers: User[] = [
-    {
-      id: "1",
-      username: "admin",
-      email: "admin@webcoming.com",
-      role: "admin",
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-01T00:00:00Z"
-    },
-    {
-      id: "2",
-      username: "john_doe",
-      email: "john@example.com",
-      role: "user",
-      isActive: true,
-      createdAt: "2024-01-15T00:00:00Z",
-      updatedAt: "2024-01-15T00:00:00Z"
-    },
-    {
-      id: "3",
-      username: "jane_smith",
-      email: "jane@example.com",
-      role: "user",
-      isActive: false,
-      createdAt: "2024-01-20T00:00:00Z",
-      updatedAt: "2024-01-25T00:00:00Z"
-    },
-    {
-      id: "4",
-      username: "mike_admin",
-      email: "mike@webcoming.com",
-      role: "admin",
-      isActive: true,
-      createdAt: "2024-01-10T00:00:00Z",
-      updatedAt: "2024-01-10T00:00:00Z"
-    }
-  ];
-
   useEffect(() => {
     loadUsers();
   }, []);
@@ -76,10 +36,24 @@ const UserManagement: React.FC = () => {
   const loadUsers = async () => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await userService.getAllUsers();
-      setUsers(mockUsers);
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5002/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setUsers(result.data);
+        }
+      } else {
+        showNotification("Failed to load users", "error");
+      }
     } catch (error) {
+      console.error("Error loading users:", error);
       showNotification("Failed to load users", "error");
     } finally {
       setIsLoading(false);
@@ -95,33 +69,58 @@ const UserManagement: React.FC = () => {
     }
 
     try {
+      const token = localStorage.getItem('authToken');
+      
       if (editingUser) {
         // Update user (excluding password fields for updates)
-        const updatedUser = { 
-          ...editingUser, 
+        const updateData = {
           username: formData.username,
           email: formData.email,
-          role: formData.role,
-          updatedAt: new Date().toISOString()
+          role: formData.role
         };
-        setUsers(users.map(u => u.id === editingUser.id ? updatedUser : u));
-        showNotification("User updated successfully!", "success");
+
+        const response = await fetch(`http://localhost:5002/api/admin/users/${editingUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        if (response.ok) {
+          showNotification("User updated successfully!", "success");
+          loadUsers(); // Reload users
+        } else {
+          showNotification("Failed to update user", "error");
+        }
       } else {
         // Create new user
-        const newUser: User = {
-          id: Date.now().toString(),
-          username: formData.username,
-          email: formData.email,
-          role: formData.role,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setUsers([...users, newUser]);
-        showNotification("User created successfully!", "success");
+        const response = await fetch('http://localhost:5002/api/admin/users', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role
+          })
+        });
+
+        if (response.ok) {
+          showNotification("User created successfully!", "success");
+          loadUsers(); // Reload users
+        } else {
+          const errorResult = await response.json();
+          showNotification(errorResult.message || "Failed to create user", "error");
+        }
       }
       resetForm();
     } catch (error) {
+      console.error("Error saving user:", error);
       showNotification("Failed to save user", "error");
     }
   };
@@ -147,9 +146,23 @@ const UserManagement: React.FC = () => {
 
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        setUsers(users.filter(u => u.id !== userId));
-        showNotification("User deleted successfully!", "success");
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:5002/api/admin/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          showNotification("User deleted successfully!", "success");
+          loadUsers(); // Reload users
+        } else {
+          showNotification("Failed to delete user", "error");
+        }
       } catch (error) {
+        console.error("Error deleting user:", error);
         showNotification("Failed to delete user", "error");
       }
     }
@@ -164,13 +177,23 @@ const UserManagement: React.FC = () => {
     }
 
     try {
-      setUsers(users.map(u => 
-        u.id === userId 
-          ? { ...u, isActive: !u.isActive, updatedAt: new Date().toISOString() } 
-          : u
-      ));
-      showNotification("User status updated!", "success");
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:5002/api/admin/users/${userId}/toggle-active`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        showNotification("User status updated!", "success");
+        loadUsers(); // Reload users
+      } else {
+        showNotification("Failed to update user status", "error");
+      }
     } catch (error) {
+      console.error("Error updating user status:", error);
       showNotification("Failed to update user status", "error");
     }
   };
@@ -184,13 +207,27 @@ const UserManagement: React.FC = () => {
     }
 
     try {
-      setUsers(users.map(u => 
-        u.id === userId 
-          ? { ...u, role: newRole, updatedAt: new Date().toISOString() } 
-          : u
-      ));
-      showNotification("User role updated!", "success");
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:5002/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...userToUpdate,
+          role: newRole
+        })
+      });
+
+      if (response.ok) {
+        showNotification("User role updated!", "success");
+        loadUsers(); // Reload users
+      } else {
+        showNotification("Failed to update user role", "error");
+      }
     } catch (error) {
+      console.error("Error updating user role:", error);
       showNotification("Failed to update user role", "error");
     }
   };
@@ -375,6 +412,13 @@ const UserManagement: React.FC = () => {
               </div>
             </div>
           ))}
+
+          {/* No users found */}
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-[#2b4539] font-mono">No users found matching your criteria.</div>
+            </div>
+          )}
         </div>
       )}
 

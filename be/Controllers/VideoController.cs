@@ -7,7 +7,7 @@ using WebComingAPI.DTOs;
 namespace WebComingAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/videos")]
     public class VideoController : ControllerBase
     {
         private readonly ICourseService _courseService;
@@ -20,11 +20,12 @@ namespace WebComingAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult<ApiResponse<List<VideoLesson>>>> GetAllVideoLessons()
         {
             try
             {
+                _logger.LogInformation("Retrieving all video lessons");
+                
                 // Get all courses and their video lessons
                 var courses = await _courseService.GetAllCoursesAsync();
                 var allVideoLessons = new List<VideoLesson>();
@@ -39,7 +40,7 @@ namespace WebComingAPI.Controllers
                 {
                     Success = true,
                     Data = allVideoLessons,
-                    Message = "Video lessons retrieved successfully"
+                    Message = $"Successfully retrieved {allVideoLessons.Count} video lessons"
                 });
             }
             catch (Exception ex)
@@ -48,7 +49,7 @@ namespace WebComingAPI.Controllers
                 return StatusCode(500, new ApiResponse<List<VideoLesson>>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error retrieving video lessons: {ex.Message}"
                 });
             }
         }
@@ -77,11 +78,11 @@ namespace WebComingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving video lesson with id {VideoId}", id);
+                _logger.LogError(ex, "Error retrieving video lesson {VideoId}", id);
                 return StatusCode(500, new ApiResponse<VideoLesson>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error retrieving video lesson: {ex.Message}"
                 });
             }
         }
@@ -96,7 +97,7 @@ namespace WebComingAPI.Controllers
                 {
                     Success = true,
                     Data = videoLessons,
-                    Message = "Video lessons retrieved successfully"
+                    Message = $"Retrieved {videoLessons.Count} video lessons for course"
                 });
             }
             catch (Exception ex)
@@ -105,7 +106,7 @@ namespace WebComingAPI.Controllers
                 return StatusCode(500, new ApiResponse<List<VideoLesson>>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error retrieving video lessons: {ex.Message}"
                 });
             }
         }
@@ -122,17 +123,6 @@ namespace WebComingAPI.Controllers
                     {
                         Success = false,
                         Message = "Invalid video lesson data"
-                    });
-                }
-
-                // Verify that the course exists
-                var course = await _courseService.GetCourseByIdAsync(request.CourseId);
-                if (course == null)
-                {
-                    return BadRequest(new ApiResponse<VideoLesson>
-                    {
-                        Success = false,
-                        Message = "Course not found"
                     });
                 }
 
@@ -165,7 +155,7 @@ namespace WebComingAPI.Controllers
                 return StatusCode(500, new ApiResponse<VideoLesson>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error creating video lesson: {ex.Message}"
                 });
             }
         }
@@ -176,15 +166,6 @@ namespace WebComingAPI.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new ApiResponse<VideoLesson>
-                    {
-                        Success = false,
-                        Message = "Invalid video lesson data"
-                    });
-                }
-
                 var existingVideoLesson = await _courseService.GetVideoLessonByIdAsync(id);
                 if (existingVideoLesson == null)
                 {
@@ -192,17 +173,6 @@ namespace WebComingAPI.Controllers
                     {
                         Success = false,
                         Message = "Video lesson not found"
-                    });
-                }
-
-                // Verify that the course exists
-                var course = await _courseService.GetCourseByIdAsync(request.CourseId);
-                if (course == null)
-                {
-                    return BadRequest(new ApiResponse<VideoLesson>
-                    {
-                        Success = false,
-                        Message = "Course not found"
                     });
                 }
 
@@ -225,11 +195,11 @@ namespace WebComingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating video lesson with id {VideoId}", id);
+                _logger.LogError(ex, "Error updating video lesson {VideoId}", id);
                 return StatusCode(500, new ApiResponse<VideoLesson>
                 {
                     Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error updating video lesson: {ex.Message}"
                 });
             }
         }
@@ -259,49 +229,11 @@ namespace WebComingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting video lesson with id {VideoId}", id);
+                _logger.LogError(ex, "Error deleting video lesson {VideoId}", id);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Internal server error"
-                });
-            }
-        }
-
-        [HttpPatch("{id}/toggle-active")]
-        [Authorize(Roles = "admin")]
-        public async Task<ActionResult<ApiResponse<VideoLesson>>> ToggleVideoLessonActive(string id)
-        {
-            try
-            {
-                var videoLesson = await _courseService.GetVideoLessonByIdAsync(id);
-                if (videoLesson == null)
-                {
-                    return NotFound(new ApiResponse<VideoLesson>
-                    {
-                        Success = false,
-                        Message = "Video lesson not found"
-                    });
-                }
-
-                videoLesson.IsActive = !videoLesson.IsActive;
-                videoLesson.UpdatedAt = DateTime.UtcNow;
-
-                var updatedVideoLesson = await _courseService.UpdateVideoLessonAsync(videoLesson);
-                return Ok(new ApiResponse<VideoLesson>
-                {
-                    Success = true,
-                    Data = updatedVideoLesson,
-                    Message = $"Video lesson {(updatedVideoLesson.IsActive ? "activated" : "deactivated")} successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error toggling video lesson active status with id {VideoId}", id);
-                return StatusCode(500, new ApiResponse<VideoLesson>
-                {
-                    Success = false,
-                    Message = "Internal server error"
+                    Message = $"Error deleting video lesson: {ex.Message}"
                 });
             }
         }

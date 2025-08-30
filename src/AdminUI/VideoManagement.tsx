@@ -11,12 +11,20 @@ interface VideoLesson {
   order: number;
   isActive: boolean;
   courseId: string;
-  courseName: string;
+  courseName?: string;
   createdAt: string;
+}
+
+interface Course {
+  id: string;
+  courseId: string;
+  title: string;
+  category: string;
 }
 
 const VideoManagement: React.FC = () => {
   const [videos, setVideos] = useState<VideoLesson[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoLesson | null>(null);
@@ -34,99 +42,111 @@ const VideoManagement: React.FC = () => {
     courseId: "",
   });
 
-  // Mock data for development - replace with API calls
-  const mockVideos: VideoLesson[] = [
-    {
-      id: "1",
-      videoId: "NET01-L01",
-      title: "Introduction to Networking",
-      description: "Basic concepts of computer networking and protocols.",
-      videoUrl: "https://example.com/video1.mp4",
-      duration: "15:30",
-      order: 1,
-      isActive: true,
-      courseId: "course-it-01",
-      courseName: "Networking Essentials and Security",
-      createdAt: "2024-01-01T00:00:00Z"
-    },
-    {
-      id: "2",
-      videoId: "NET01-L02",
-      title: "OSI Model Deep Dive",
-      description: "Understanding the seven layers of the OSI model.",
-      videoUrl: "https://example.com/video2.mp4",
-      duration: "22:45",
-      order: 2,
-      isActive: true,
-      courseId: "course-it-01",
-      courseName: "Networking Essentials and Security",
-      createdAt: "2024-01-01T00:00:00Z"
-    },
-    {
-      id: "3",
-      videoId: "FOR03-L01",
-      title: "Digital Evidence Collection",
-      description: "Proper procedures for collecting digital evidence.",
-      videoUrl: "https://example.com/video3.mp4",
-      duration: "28:15",
-      order: 1,
-      isActive: true,
-      courseId: "course-cyber-03",
-      courseName: "Digital Forensics & Incident Response",
-      createdAt: "2024-01-02T00:00:00Z"
-    }
-  ];
-
-  const mockCourses = [
-    { id: "course-it-01", name: "Networking Essentials and Security" },
-    { id: "course-cyber-03", name: "Digital Forensics & Incident Response" }
-  ];
-
   useEffect(() => {
-    loadVideos();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    await Promise.all([loadVideos(), loadCourses()]);
+  };
 
   const loadVideos = async () => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await videoService.getAllVideos();
-      setVideos(mockVideos);
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5002/api/videos', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setVideos(result.data);
+        }
+      } else {
+        showNotification("Failed to load videos", "error");
+      }
     } catch (error) {
+      console.error("Error loading videos:", error);
       showNotification("Failed to load videos", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loadCourses = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:5002/api/courses', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const courseList = result.data.map((course: any) => ({
+            id: course.id,
+            courseId: course.courseId,
+            title: course.title,
+            category: course.category
+          }));
+          setCourses(courseList);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading courses:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const selectedCourse = mockCourses.find(c => c.id === formData.courseId);
+      const token = localStorage.getItem('authToken');
       
       if (editingVideo) {
         // Update video
-        const updatedVideo = { 
-          ...editingVideo, 
-          ...formData,
-          courseName: selectedCourse?.name || ""
-        };
-        setVideos(videos.map(v => v.id === editingVideo.id ? updatedVideo : v));
-        showNotification("Video updated successfully!", "success");
+        const response = await fetch(`http://localhost:5002/api/videos/${editingVideo.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          showNotification("Video updated successfully!", "success");
+          loadVideos(); // Reload videos
+        } else {
+          showNotification("Failed to update video", "error");
+        }
       } else {
         // Create new video
-        const newVideo: VideoLesson = {
-          id: Date.now().toString(),
-          ...formData,
-          courseName: selectedCourse?.name || "",
-          isActive: true,
-          createdAt: new Date().toISOString()
-        };
-        setVideos([...videos, newVideo]);
-        showNotification("Video created successfully!", "success");
+        const response = await fetch('http://localhost:5002/api/videos', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          showNotification("Video created successfully!", "success");
+          loadVideos(); // Reload videos
+        } else {
+          showNotification("Failed to create video", "error");
+        }
       }
       resetForm();
     } catch (error) {
+      console.error("Error saving video:", error);
       showNotification("Failed to save video", "error");
     }
   };
@@ -148,9 +168,23 @@ const VideoManagement: React.FC = () => {
   const handleDelete = async (videoId: string) => {
     if (window.confirm("Are you sure you want to delete this video?")) {
       try {
-        setVideos(videos.filter(v => v.id !== videoId));
-        showNotification("Video deleted successfully!", "success");
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:5002/api/videos/${videoId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          showNotification("Video deleted successfully!", "success");
+          loadVideos(); // Reload videos
+        } else {
+          showNotification("Failed to delete video", "error");
+        }
       } catch (error) {
+        console.error("Error deleting video:", error);
         showNotification("Failed to delete video", "error");
       }
     }
@@ -158,11 +192,30 @@ const VideoManagement: React.FC = () => {
 
   const handleToggleActive = async (videoId: string) => {
     try {
-      setVideos(videos.map(v => 
-        v.id === videoId ? { ...v, isActive: !v.isActive } : v
-      ));
-      showNotification("Video status updated!", "success");
+      const video = videos.find(v => v.id === videoId);
+      if (!video) return;
+
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:5002/api/videos/${videoId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...video,
+          isActive: !video.isActive
+        })
+      });
+
+      if (response.ok) {
+        showNotification("Video status updated!", "success");
+        loadVideos(); // Reload videos
+      } else {
+        showNotification("Failed to update video status", "error");
+      }
     } catch (error) {
+      console.error("Error updating video status:", error);
       showNotification("Failed to update video status", "error");
     }
   };
@@ -181,11 +234,26 @@ const VideoManagement: React.FC = () => {
     setShowModal(false);
   };
 
+  const getCourseName = (courseId: string) => {
+    const course = courses.find(c => c.courseId === courseId);
+    return course ? course.title : courseId;
+  };
+
   const filteredVideos = videos.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          video.videoId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCourse = filterCourse === "all" || video.courseId === filterCourse;
     return matchesSearch && matchesCourse;
+  });
+
+  const itVideos = filteredVideos.filter(v => {
+    const course = courses.find(c => c.courseId === v.courseId);
+    return course?.category === "IT";
+  });
+
+  const cyberVideos = filteredVideos.filter(v => {
+    const course = courses.find(c => c.courseId === v.courseId);
+    return course?.category === "Cyber";
   });
 
   return (
@@ -199,6 +267,22 @@ const VideoManagement: React.FC = () => {
         >
           [ + ADD VIDEO ]
         </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+          <div className="text-2xl font-mono text-[#61b3dc] font-bold">{videos.length}</div>
+          <div className="text-sm font-mono text-[#2b4539]">Total Videos</div>
+        </div>
+        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+          <div className="text-2xl font-mono text-[#61dca3] font-bold">{itVideos.length}</div>
+          <div className="text-sm font-mono text-[#2b4539]">IT Videos</div>
+        </div>
+        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+          <div className="text-2xl font-mono text-[#61b3dc] font-bold">{cyberVideos.length}</div>
+          <div className="text-sm font-mono text-[#2b4539]">Cyber Videos</div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -219,8 +303,10 @@ const VideoManagement: React.FC = () => {
             className="bg-black border border-[#2b4539] rounded px-4 py-2 text-[#61b3dc] font-mono focus:border-[#61b3dc] focus:outline-none"
           >
             <option value="all">All Courses</option>
-            {mockCourses.map(course => (
-              <option key={course.id} value={course.id}>{course.name}</option>
+            {courses.map(course => (
+              <option key={course.courseId} value={course.courseId}>
+                {course.title} ({course.category})
+              </option>
             ))}
           </select>
         </div>
@@ -232,71 +318,158 @@ const VideoManagement: React.FC = () => {
           <div className="text-[#61b3dc] font-mono">Loading videos...</div>
         </div>
       ) : (
-        <div className="space-y-4">
-          {filteredVideos.map((video) => (
-            <div
-              key={video.id}
-              className={`bg-black/50 border rounded-lg p-4 transition-all duration-300 ${
-                video.isActive ? 'border-[#2b4539] hover:border-[#61b3dc]' : 'border-red-500/50'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-4">
-                    <h3 className="text-[#61b3dc] font-mono font-bold">{video.title}</h3>
-                    <span className={`px-2 py-1 rounded text-xs font-mono ${
-                      video.isActive 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-red-600 text-white'
-                    }`}>
-                      {video.isActive ? 'ACTIVE' : 'INACTIVE'}
-                    </span>
-                  </div>
-                  
-                  <p className="text-[#61dca3] font-mono text-sm">{video.videoId}</p>
-                  <p className="text-gray-400 text-sm">{video.description}</p>
-                  
-                  <div className="flex items-center space-x-6 text-sm">
-                    <span className="text-[#2b4539] font-mono">Course: {video.courseName}</span>
-                    <span className="text-[#2b4539] font-mono">Duration: {video.duration}</span>
-                    <span className="text-[#2b4539] font-mono">Order: #{video.order}</span>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 font-mono">
-                    Created: {new Date(video.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2 ml-4">
-                  <button
-                    onClick={() => handleToggleActive(video.id)}
-                    className={`font-mono py-1 px-3 rounded text-xs transition-all duration-300 ${
-                      video.isActive
-                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                        : 'bg-green-600 text-white hover:bg-green-700'
+        <>
+          {/* IT Videos Section */}
+          {itVideos.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-mono text-[#61dca3] font-bold">[ IT VIDEOS - {itVideos.length} ]</h3>
+              <div className="space-y-4">
+                {itVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className={`bg-black/50 border rounded-lg p-4 transition-all duration-300 ${
+                      video.isActive ? 'border-[#2b4539] hover:border-[#61b3dc]' : 'border-red-500/50'
                     }`}
                   >
-                    {video.isActive ? 'DISABLE' : 'ENABLE'}
-                  </button>
-                  
-                  <button
-                    onClick={() => handleEdit(video)}
-                    className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
-                  >
-                    EDIT
-                  </button>
-                  
-                  <button
-                    onClick={() => handleDelete(video.id)}
-                    className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
-                  >
-                    DELETE
-                  </button>
-                </div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center space-x-4">
+                          <h4 className="text-[#61b3dc] font-mono font-bold">{video.title}</h4>
+                          <span className={`px-2 py-1 rounded text-xs font-mono ${
+                            video.isActive 
+                              ? 'bg-green-600 text-white' 
+                              : 'bg-red-600 text-white'
+                          }`}>
+                            {video.isActive ? 'ACTIVE' : 'INACTIVE'}
+                          </span>
+                        </div>
+                        
+                        <p className="text-[#61dca3] font-mono text-sm">{video.videoId}</p>
+                        <p className="text-gray-400 text-sm">{video.description}</p>
+                        
+                        <div className="flex items-center space-x-6 text-sm">
+                          <span className="text-[#2b4539] font-mono">Course: {getCourseName(video.courseId)}</span>
+                          <span className="text-[#2b4539] font-mono">Duration: {video.duration}</span>
+                          <span className="text-[#2b4539] font-mono">Order: #{video.order}</span>
+                        </div>
+                        
+                        <div className="text-xs text-gray-500 font-mono">
+                          Created: {new Date(video.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => handleToggleActive(video.id)}
+                          className={`font-mono py-1 px-3 rounded text-xs transition-all duration-300 ${
+                            video.isActive
+                              ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                        >
+                          {video.isActive ? 'DISABLE' : 'ENABLE'}
+                        </button>
+                        
+                        <button
+                          onClick={() => handleEdit(video)}
+                          className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+                        >
+                          EDIT
+                        </button>
+                        
+                        <button
+                          onClick={() => handleDelete(video.id)}
+                          className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                        >
+                          DELETE
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* Cyber Videos Section */}
+          {cyberVideos.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-mono text-[#61b3dc] font-bold">[ CYBERSECURITY VIDEOS - {cyberVideos.length} ]</h3>
+              <div className="space-y-4">
+                {cyberVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className={`bg-black/50 border rounded-lg p-4 transition-all duration-300 ${
+                      video.isActive ? 'border-[#2b4539] hover:border-[#61b3dc]' : 'border-red-500/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center space-x-4">
+                          <h4 className="text-[#61b3dc] font-mono font-bold">{video.title}</h4>
+                          <span className={`px-2 py-1 rounded text-xs font-mono ${
+                            video.isActive 
+                              ? 'bg-green-600 text-white' 
+                              : 'bg-red-600 text-white'
+                          }`}>
+                            {video.isActive ? 'ACTIVE' : 'INACTIVE'}
+                          </span>
+                        </div>
+                        
+                        <p className="text-[#61dca3] font-mono text-sm">{video.videoId}</p>
+                        <p className="text-gray-400 text-sm">{video.description}</p>
+                        
+                        <div className="flex items-center space-x-6 text-sm">
+                          <span className="text-[#2b4539] font-mono">Course: {getCourseName(video.courseId)}</span>
+                          <span className="text-[#2b4539] font-mono">Duration: {video.duration}</span>
+                          <span className="text-[#2b4539] font-mono">Order: #{video.order}</span>
+                        </div>
+                        
+                        <div className="text-xs text-gray-500 font-mono">
+                          Created: {new Date(video.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => handleToggleActive(video.id)}
+                          className={`font-mono py-1 px-3 rounded text-xs transition-all duration-300 ${
+                            video.isActive
+                              ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                        >
+                          {video.isActive ? 'DISABLE' : 'ENABLE'}
+                        </button>
+                        
+                        <button
+                          onClick={() => handleEdit(video)}
+                          className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+                        >
+                          EDIT
+                        </button>
+                        
+                        <button
+                          onClick={() => handleDelete(video.id)}
+                          className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                        >
+                          DELETE
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* No videos found */}
+          {filteredVideos.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-[#61b3dc] font-mono">No videos found matching your criteria.</div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Modal */}
@@ -330,8 +503,10 @@ const VideoManagement: React.FC = () => {
                     required
                   >
                     <option value="">Select Course</option>
-                    {mockCourses.map(course => (
-                      <option key={course.id} value={course.id}>{course.name}</option>
+                    {courses.map(course => (
+                      <option key={course.courseId} value={course.courseId}>
+                        {course.title} ({course.category})
+                      </option>
                     ))}
                   </select>
                 </div>
