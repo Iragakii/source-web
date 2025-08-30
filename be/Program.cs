@@ -49,17 +49,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure CORS with specific origins for better security
+// Configure CORS with origins from configuration
+var corsSettings = builder.Configuration.GetSection("CORS");
+var allowedOrigins = corsSettings.GetSection("AllowedOrigins").Get<string[]>() ?? new string[0];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "https://iragaki-fe.vercel.app",
-                "https://iragaki.info",
-                "http://localhost:5173",
-                "http://localhost:3000"
-              )
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials()
