@@ -28,23 +28,23 @@ const TextLeft = () => {
     // Slide 1 - Original content
     [
       {
-        text: "Training master yours skills to earn IT certifications",
+        text: "Advanced Diploma in Software Engineering",
         width: "w-130",
       },
       {
-        text: "Every certification is an investment in your career capital",
+        text: " Lập trình viên quốc tế - ADSE - FPT ",
         width: "w-140",
       },
       {
-        text: "Trusted skills , Stronger future",
+        text: "Computer Science - Lincoln University College",
         width: "w-130",
       },
       {
-        text: "OSCP is proof you've mastered cybersecurity",
+        text: "Chứng chỉ JLPT N5 - Tiếng Nhật sơ cấp",
         width: "w-130",
       },
       {
-        text: "Building intelligence, one algorithm at a time",
+        text: "Coursera Python for AI - CS50 Python Havard ",
         width: "w-130",
       },
       {

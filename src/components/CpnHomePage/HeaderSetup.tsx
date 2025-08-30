@@ -30,7 +30,7 @@ const HeaderSetup = () => {
        
           <Link to="/about">
             <button className="hover:text-white cursor-pointer transition-colors duration-200 px-2 py-1">
-              <span>About US</span>
+              <span>My CV</span>
             </button>
           </Link>
         </div>
@@ -131,19 +131,15 @@ const HeaderSetup = () => {
                 <span>Home</span>
               </button>
             </Link>
-            <Link to="#" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link to="/join-course" onClick={() => setIsMobileMenuOpen(false)}>
               <button className="hover:text-white cursor-pointer transition-colors duration-200 text-left w-full py-2">
-                <span>Contact</span>
+                <span>Course</span>
               </button>
             </Link>
-            <Link to="#" onClick={() => setIsMobileMenuOpen(false)}>
+          
+            <Link to="/about" onClick={() => setIsMobileMenuOpen(false)}>
               <button className="hover:text-white cursor-pointer transition-colors duration-200 text-left w-full py-2">
-                <span>FAQ</span>
-              </button>
-            </Link>
-            <Link to="#" onClick={() => setIsMobileMenuOpen(false)}>
-              <button className="hover:text-white cursor-pointer transition-colors duration-200 text-left w-full py-2">
-                <span>About US</span>
+                <span>My CV</span>
               </button>
             </Link>
           </div>
