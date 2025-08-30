@@ -6,7 +6,7 @@ import CyberTest from "../CyberTest"
 
 const TestCyberBackG = () => {
   return (
-    <div className="relative h-100">
+    <div className="relative h-full">
       {/* Background Layer */}
       <div className="absolute inset-0 z-0">
         <Squares 
@@ -19,7 +19,7 @@ const TestCyberBackG = () => {
       </div>
       
       {/* Content Layer */}
-      <div className="absolute z-10 top-1/4 left-1/8">
+      <div className="flex items-center justify-center">
         <CyberTest />
       </div>
     </div>

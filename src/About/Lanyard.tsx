@@ -126,6 +126,11 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
   );
   const [dragged, drag] = useState<false | THREE.Vector3>(false);
   const [hovered, hover] = useState(false);
+  
+  // Click detection states
+  const [mouseDownTime, setMouseDownTime] = useState<number>(0);
+  const [mouseDownPosition, setMouseDownPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [isSmall, setIsSmall] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -253,15 +258,56 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
             onPointerOut={() => hover(false)}
             onPointerUp={(e: any) => {
               e.target.releasePointerCapture(e.pointerId);
+              
+              // Check if this was a click (not a drag)
+              const currentTime = Date.now();
+              const timeDiff = currentTime - mouseDownTime;
+              const isClick = timeDiff < 200 && !isDragging; // Less than 200ms and no significant drag
+              
+              if (isClick && mouseDownPosition) {
+                // Calculate distance moved
+                const deltaX = e.clientX - mouseDownPosition.x;
+                const deltaY = e.clientY - mouseDownPosition.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // If mouse didn't move much, treat as click
+                if (distance < 10) {
+                  // Open CV URL in new tab
+                  window.open('https://www.topcv.vn/xem-cv/AQhSXVNaXFtVUAFRVwcDCFsGCVFVUVJRBgRVDA7097', '_blank');
+                }
+              }
+              
+              // Reset states
               drag(false);
+              setIsDragging(false);
+              setMouseDownTime(0);
+              setMouseDownPosition(null);
             }}
             onPointerDown={(e: any) => {
               e.target.setPointerCapture(e.pointerId);
+              
+              // Record mouse down time and position for click detection
+              setMouseDownTime(Date.now());
+              setMouseDownPosition({ x: e.clientX, y: e.clientY });
+              setIsDragging(false);
+              
               drag(
                 new THREE.Vector3()
                   .copy(e.point)
                   .sub(vec.copy(card.current.translation()))
               );
+            }}
+            onPointerMove={(e: any) => {
+              // If mouse moves significantly, mark as dragging
+              if (mouseDownPosition && dragged) {
+                const deltaX = e.clientX - mouseDownPosition.x;
+                const deltaY = e.clientY - mouseDownPosition.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                if (distance > 5) {
+                  setIsDragging(true);
+                }
+              }
             }}
           >
             <mesh geometry={nodes.card.geometry}>
@@ -284,11 +330,12 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
         </RigidBody>
       </group>
       <mesh ref={band}>
-        <meshLineGeometry />
+        <meshLineGeometry attach="geometry" />
         <meshLineMaterial
+          attach="material"
           color="#ff6b6b"
           depthTest={false}
-          resolution={isSmall ? [3500  , 1000] : [3500, 1000]}
+          resolution={isSmall ? [3500, 1000] : [3500, 1000]}
           useMap={true}
           map={texture}
           repeat={[-4, 1]}

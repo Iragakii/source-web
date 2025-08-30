@@ -4,10 +4,12 @@ import CustomShinyText from "../components/CustomShinyText"
 import HeaderSetup from '../components/CpnHomePage/HeaderSetup'
 import ScreentwoAbout from './ScreenTwoAbout/ScreentwoAbout'
 
+
 const AboutUI = () => {
   return (
     <>
     <div className='bg-black/94'> <div className=''>
+    
      <div className='absolute top-[430px] left-[550px]'>
         <CustomShinyText
           text="Click to Open MyCV"

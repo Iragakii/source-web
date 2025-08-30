@@ -5,7 +5,7 @@ import { ITTest } from './QuestionIT';
 
 const TestITBackG = () => {
   return (
-    <div className="relative h-100">
+    <div className="relative h-full">
       {/* Background Layer */}
       <div className="absolute inset-0 z-0">
         <Squares 
@@ -18,7 +18,7 @@ const TestITBackG = () => {
       </div>
       
       {/* Content Layer */}
-      <div className="absolute z-10 top-1/4 left-1/8">
+      <div className="flex items-center justify-center">
         <ITTest />
       </div>
     </div>

@@ -145,7 +145,7 @@ const ITTest: React.FC = () => {
   if (showResults) {
     return (
       <div className=' '>
-        <div className="relative w-[660px] left-[218px] bottom-[50px] min-h-screen !p-6">
+        <div className="min-h-screen flex flex-col items-center justify-center !mr-20 !p-6">
           <div className="bg-gradient-to-br from-[#BBD8A3] to-green-50/95 !p-8 backdrop-blur-xl border border-green-200/50 rounded-3xl !space-y-5 max-w-4xl mx-auto text-center shadow-2xl">
             <div className="mb-8">
               <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent mb-4">
@@ -250,7 +250,7 @@ const ITTest: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-[115     0px] p-6">
+    <div className="min-h-screen flex flex-col items-center !w-[1200px] justify-center p-6">
       {/* Header */}
       <div className=" mb-8">
         <div className="bg-gradient-to-r from-[#DDF4E7] to-[#67C090] backdrop-blur-xl border border-green-200/50 rounded-2xl p-8 shadow-xl">
@@ -290,7 +290,7 @@ const ITTest: React.FC = () => {
       </div>
 
       {/* Question */}
-      <div className="max-w-6xl mx-auto mb-8">
+      <div className="w-[1000px] mb-8">
         <QuestionCard
           question={currentQuestion}
           selectedAnswer={testState.answers[testState.currentQuestion]}

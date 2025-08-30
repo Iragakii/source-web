@@ -16,8 +16,12 @@ declare module 'meshline' {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      meshLineGeometry: any;
+      meshLineGeometry: {
+        attach?: string;
+        [key: string]: any;
+      };
       meshLineMaterial: {
+        attach?: string;
         color?: string;
         depthTest?: boolean;
         resolution?: [number, number];
@@ -25,6 +29,7 @@ declare global {
         map?: any;
         repeat?: [number, number];
         lineWidth?: number;
+        [key: string]: any;
       };
     }
   }

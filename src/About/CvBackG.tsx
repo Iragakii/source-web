@@ -4,7 +4,8 @@ const CvBackG = () => {
   return (
  
 
-<Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} />
+ <Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} />
+
 
 
   )
