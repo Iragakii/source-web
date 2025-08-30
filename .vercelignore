@@ -1,4 +1,6 @@
+be
 be/
+be/**
 node_modules/
 .git/
 *.log
