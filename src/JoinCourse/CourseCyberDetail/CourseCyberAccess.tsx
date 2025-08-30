@@ -416,7 +416,7 @@ const CourseCyberAccess: React.FC = () => {
   const currentLesson = courseData.lessons[currentVideoIndex];
 
   return (
-    <div className="h-[110vh] relative">
+    <div className="!h-full relative">
       <GlitchBackground />
       
       {/* Header */}
