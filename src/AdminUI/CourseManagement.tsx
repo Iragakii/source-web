@@ -206,7 +206,7 @@ const CourseManagement: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-mono text-[#61dca3] font-bold">[ COURSE MANAGEMENT ]</h2>
+        <h2 className="text-xl font-mono rounded-sm text-black bg-[#61dca3] font-medium">[ COURSE MANAGEMENT ]</h2>
         <button
           onClick={() => setShowModal(true)}
           className="bg-[#61dca3] text-black font-mono py-2 px-6 rounded hover:bg-[#7BC47F] transition-all duration-300 cursor-pointer transform hover:scale-105"
@@ -217,22 +217,22 @@ const CourseManagement: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
+        <div className="bg-black/90 border border-[#2b4539] rounded-lg p-4 text-center">
           <div className="text-2xl font-mono text-[#61dca3] font-bold">{courses.length}</div>
-          <div className="text-sm font-mono text-[#2b4539]">Total Courses</div>
+          <div className="text-sm font-mono text-[#34BE82]">Total Courses</div>
         </div>
         <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
           <div className="text-2xl font-mono text-[#61b3dc] font-bold">{itCourses.length}</div>
-          <div className="text-sm font-mono text-[#2b4539]">IT Courses</div>
+          <div className="text-sm font-mono text-[#93FFD8]">IT Courses</div>
         </div>
         <div className="bg-black/50 border border-[#2b4539] rounded-lg p-4 text-center">
           <div className="text-2xl font-mono text-[#61dca3] font-bold">{cyberCourses.length}</div>
-          <div className="text-sm font-mono text-[#2b4539]">Cyber Courses</div>
+          <div className="text-sm font-mono text-[#80ED99]">Cyber Courses</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-black/50 border border-[#2b4539] rounded-lg p-4">
+      <div className="!mb-8 flex flex-col sm:flex-row gap-4 bg-black/90  rounded-lg !p-4">
         <div className="flex-1">
           <input
             type="text"
@@ -265,8 +265,8 @@ const CourseManagement: React.FC = () => {
           {/* IT Courses Section */}
           {(filterCategory === "all" || filterCategory === "IT") && itCourses.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-xl font-mono text-[#61b3dc] font-bold">[ IT COURSES - {itCourses.length} ]</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <h3 className="text-xl font-mono bg-black/90 w-50  text-[#93FFD8] font-bold">[ IT COURSES - {itCourses.length} ]</h3>
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {itCourses.map((course) => (
                   <div
                     key={course.id}
@@ -275,33 +275,33 @@ const CourseManagement: React.FC = () => {
                     <img
                       src={course.imageUrl}
                       alt={course.title}
-                      className="w-full h-32 object-cover rounded mb-4"
+                      className="w-full h-40 object-cover rounded mb-4"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=Course+Image';
                       }}
                     />
-                    <div className="space-y-2">
-                      <h4 className="text-[#61dca3] font-mono font-bold text-sm">{course.title}</h4>
+                    <div className="space-y-2 ">
+                      <h4 className="text-[#61dca3] font-mono font-bold text-sm line-clamp-1">{course.title}</h4>
                       <p className="text-[#61b3dc] font-mono text-xs">{course.courseId}</p>
-                      <p className="text-gray-400 text-xs line-clamp-2">{course.description}</p>
+                      <p className="text-[#73A9AD] text-xs line-clamp-2">{course.description}</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[#2b4539] font-mono">{course.category}</span>
                         <span className="text-[#2b4539] font-mono">{course.level}</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center  justify-between text-xs">
                         <span className="text-[#61b3dc] font-mono">{course.instructor}</span>
                         <span className="text-[#61b3dc] font-mono">{course.duration}</span>
                       </div>
-                      <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center justify-between !pt-2">
                         <button
                           onClick={() => handleEdit(course)}
-                          className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+                          className="bg-[#61b3dc] text-black font-mono py-1 !px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
                         >
                           EDIT
                         </button>
                         <button
                           onClick={() => handleDelete(course.id)}
-                          className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                          className="bg-red-600 text-white font-mono py-1 !px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
                         >
                           DELETE
                         </button>
@@ -315,9 +315,9 @@ const CourseManagement: React.FC = () => {
 
           {/* Cyber Courses Section */}
           {(filterCategory === "all" || filterCategory === "Cyber") && cyberCourses.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-mono text-[#61dca3] font-bold">[ CYBERSECURITY COURSES - {cyberCourses.length} ]</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-4 !mt-10">
+              <h3 className="text-xl font-mono bg-[#61dca3] w-81 !mb-3 text-black font-bold">[ CYBERSECURITY COURSES - {cyberCourses.length} ]</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {cyberCourses.map((course) => (
                   <div
                     key={course.id}
@@ -332,27 +332,27 @@ const CourseManagement: React.FC = () => {
                       }}
                     />
                     <div className="space-y-2">
-                      <h4 className="text-[#61dca3] font-mono font-bold text-sm">{course.title}</h4>
+                      <h4 className="text-[#61dca3] font-mono font-bold text-sm line-clamp-1">{course.title}</h4>
                       <p className="text-[#61b3dc] font-mono text-xs">{course.courseId}</p>
-                      <p className="text-gray-400 text-xs line-clamp-2">{course.description}</p>
+                      <p className="text-[#89A3B2] text-xs line-clamp-2">{course.description}</p>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[#2b4539] font-mono">{course.category}</span>
                         <span className="text-[#2b4539] font-mono">{course.level}</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center !mb-2 justify-between text-xs">
                         <span className="text-[#61b3dc] font-mono">{course.instructor}</span>
                         <span className="text-[#61b3dc] font-mono">{course.duration}</span>
                       </div>
                       <div className="flex items-center justify-between pt-2">
                         <button
                           onClick={() => handleEdit(course)}
-                          className="bg-[#61b3dc] text-black font-mono py-1 px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
+                          className="bg-[#61b3dc] text-black font-mono py-1 !px-3 rounded text-xs hover:bg-[#4A9BC4] transition-all duration-300"
                         >
                           EDIT
                         </button>
                         <button
                           onClick={() => handleDelete(course.id)}
-                          className="bg-red-600 text-white font-mono py-1 px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
+                          className="bg-red-600 text-white font-mono py-1 !px-3 rounded text-xs hover:bg-red-700 transition-all duration-300"
                         >
                           DELETE
                         </button>

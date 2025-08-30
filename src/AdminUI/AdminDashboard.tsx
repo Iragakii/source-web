@@ -72,7 +72,7 @@ const AdminDashboard: React.FC = () => {
         <BackGroundLogin />
         
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-30 bg-black/90 border-b-2 border-[#61dca3]">
+        <div className="absolute top-0 left-0 right-0 z-30 bg-black/90 border-b-2 border-t-2 border-[#61dca3]">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-4">
               <button
@@ -81,12 +81,14 @@ const AdminDashboard: React.FC = () => {
               >
                 [ ← HOME ]
               </button>
-              <h1 className="text-[#61dca3] font-mono text-xl font-bold">
+          
+            </div>
+              <div className="flex items-center justify-center !ml-40 ">
+                <h1 className="text-[#61dca3] font-mono text-xl font-bold">
                 [ ADMIN DASHBOARD ]
               </h1>
             </div>
-            
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center !space-x-4">
               <span className="text-[#61b3dc] font-mono">
                 Welcome, {user.username}
               </span>
@@ -101,7 +103,8 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="absolute top-20 left-0 right-0 z-20 bg-black/80 border-b border-[#2b4539]">
+       <div className="flex items-center justify-center">
+         <div className="absolute top-20 left-131 right-0 z-20 bg-[#009990] w-full max-w-sm  mx-auto rounded-lg border-2 border-[#61dca3] shadow-lg">
           <div className="flex items-center justify-center space-x-1 p-4">
             <button
               onClick={() => setActiveTab("courses")}
@@ -117,8 +120,8 @@ const AdminDashboard: React.FC = () => {
               onClick={() => setActiveTab("videos")}
               className={`font-mono py-2 px-6 rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
                 activeTab === "videos"
-                  ? "bg-[#61b3dc] text-black border-2 border-[#61b3dc]"
-                  : "bg-transparent border-2 border-[#61b3dc] text-[#61b3dc] hover:bg-[#61b3dc] hover:text-black"
+                  ? "!bg-[#211C6A] !text-black border-2 !border-[#211C6A]"
+                  : "bg-[#B4E4FF] border-2 border-[#13005A] text-[#13005A] hover:bg-[#61b3dc] hover:text-black"
               }`}
             >
               [ VIDEOS ]
@@ -135,6 +138,7 @@ const AdminDashboard: React.FC = () => {
             </button>
           </div>
         </div>
+       </div>
 
         {/* Content Area */}
         <div className="absolute top-36 left-0 right-0 bottom-0 z-10 overflow-y-auto">
