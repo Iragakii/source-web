@@ -11,7 +11,7 @@ const getApiBaseUrl = (): string => {
   }
   
   // Production fallback - you should set VITE_API_BASE_URL in production
-  return 'https://your-backend-api.vercel.app/api';
+  return 'https://backend-iragaki.vercel.app/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
