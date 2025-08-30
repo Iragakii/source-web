@@ -1,6 +1,9 @@
-be
+# Backend directory - completely exclude
 be/
-be/**
+be/**/*
+be/*
+
+# Standard exclusions
 node_modules/
 .git/
 *.log
@@ -8,3 +11,19 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Build artifacts
+dist/
+build/
+.next/
+.nuxt/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
