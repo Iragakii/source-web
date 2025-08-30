@@ -3,6 +3,13 @@ be/
 be/**/*
 be/*
 
+# Backend file types - exclude anywhere
+*.cs
+*.csproj
+*.sln
+appsettings*.json
+Program.cs
+
 # Standard exclusions
 node_modules/
 .git/
