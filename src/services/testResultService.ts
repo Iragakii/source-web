@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5002/api';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 export interface TestResultSubmissionRequest {
   email: string;
