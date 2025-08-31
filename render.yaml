@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: webcoming-api
+    env: dotnet
+    rootDir: ./be
+    buildCommand: dotnet restore && dotnet build --configuration Release
+    startCommand: dotnet run --configuration Release --urls http://0.0.0.0:$PORT
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:$PORT
+      - key: MongoDB__ConnectionString
+        sync: false
+      - key: JWT__SecretKey
+        sync: false
+    healthCheckPath: /health
