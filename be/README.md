@@ -191,7 +191,7 @@ The MongoDB connection string is configured in `appsettings.json`:
 ```json
 {
   "MongoDB": {
-    "ConnectionString": "mongodb+srv://iragaki:Samaki123699@iragaki.kmhzld1.mongodb.net/",
+    "ConnectionString": "mongodb+srv://ngocvan:1111@cluster0.le6tolu.mongodb.net/",
     "DatabaseName": "WebComingDB"
   }
 }
