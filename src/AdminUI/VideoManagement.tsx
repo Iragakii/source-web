@@ -370,7 +370,7 @@ const VideoManagement: React.FC = () => {
                 {cyberVideos.map((video) => (
                   <div
                     key={video.id}
-                    className={`bg-black/50 border rounded-lg p-4 transition-all duration-300 ${
+                    className={`bg-black/90 border rounded-lg p-4 transition-all duration-300 ${
                       video.isActive ? 'border-[#2b4539] hover:border-[#61b3dc]' : 'border-red-500/50'
                     }`}
                   >
@@ -441,7 +441,7 @@ const VideoManagement: React.FC = () => {
                 {itVideos.map((video) => (
                   <div
                     key={video.id}
-                    className={`bg-black/50 border rounded-lg p-4 transition-all duration-300 ${
+                    className={`bg-black/90 border rounded-lg p-4 transition-all duration-300 ${
                       video.isActive ? 'border-[#2b4539] hover:border-[#61b3dc]' : 'border-red-500/50'
                     }`}
                   >

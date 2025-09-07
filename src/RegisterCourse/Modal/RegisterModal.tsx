@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { courseService } from "../../services/courseService";
 import { useNotification } from "../../contexts/NotificationContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
   }>({});
   const [isLoading, setIsLoading] = useState(false);
   const { showNotification } = useNotification();
+  const { user } = useAuth();
 
   const validateForm = () => {
     const newErrors: { studentName?: string; email?: string; phone?: string } = {};
@@ -65,7 +67,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
     try {
       const result = await courseService.registerForCourse({
         studentName: formData.studentName,
-        email: formData.email,
+        email: user?.email || formData.email,
         phone: formData.phone,
         courseName: formData.courseName,
         experience: formData.experience,
@@ -77,7 +79,14 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
           `Registration successful! Welcome ${formData.studentName} to ${formData.courseName}!`,
           'success'
         );
+
+        // Determine redirect path based on course type
+        const isCyberCourse = formData.courseName.toLowerCase().includes('cybersecurity');
+        const redirectPath = isCyberCourse ? '/test-cybersec' : '/test-it';
+
+        // Close modal and redirect immediately
         onClose();
+
         // Reset form
         setFormData({
           studentName: "",
@@ -86,6 +95,11 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
           courseName: "IT Fundamentals",
           experience: "beginner"
         });
+
+        // Redirect after a short delay to ensure modal closes
+        setTimeout(() => {
+          window.location.href = redirectPath;
+        }, 300);
       } else {
         // Handle validation errors from server
         if (result.errors && result.errors.length > 0) {
@@ -139,7 +153,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
           )}
           <div>
             <label className="block text-[#61dca3] font-mono text-[18px] !mb-2">
-              &gt; STUDENT NAME:
+              STUDENT NAME:
             </label>
             <input
               type="text"
@@ -162,11 +176,11 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
 
           <div>
             <label className="block text-[#61dca3] font-mono text-[18px] !mb-2">
-              &gt; EMAIL ADDRESS:
+              EMAIL ADDRESS:
             </label>
             <input
               type="email"
-              value={formData.email}
+              value={user?.email || formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
               disabled={isLoading}
               className={`w-full bg-transparent border rounded px-4 !mb-4 !py-2 text-[#61dca3] font-mono transition-all duration-300 ${
@@ -185,7 +199,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
 
           <div>
             <label className="block text-[#61dca3] font-mono text-[18px] !mb-2">
-              &gt; PHONE NUMBER:
+              PHONE NUMBER:
             </label>
             <input
               type="tel"
@@ -208,7 +222,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
 
           <div>
             <label className="block text-[#61dca3] font-mono text-[18px] !mb-2">
-              &gt; COURSE SELECTION:
+              COURSE SELECTION:
             </label>
             <select
               value={formData.courseName}
@@ -228,7 +242,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
 
           <div>
             <label className="block text-[#61dca3] font-mono text-[18px] !mb-2">
-              &gt; EXPERIENCE LEVEL:
+              EXPERIENCE LEVEL:
             </label>
             <select
               value={formData.experience}

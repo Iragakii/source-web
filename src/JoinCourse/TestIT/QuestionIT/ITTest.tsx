@@ -3,12 +3,16 @@ import QuestionCard from './QuestionCard';
 import { itQuestions } from './questionData';
 import type { TestState } from './types';
 import { testResultService } from '../../../services/testResultService';
+import { testQuestionService } from '../../../services/testQuestionService';
+import type { TestQuestion } from '../../../services/testQuestionService';
 import { useNotification } from '../../../contexts/NotificationContext';
 
 const ITTest: React.FC = () => {
+  const [questions, setQuestions] = useState<TestQuestion[]>([]);
+
   const [testState, setTestState] = useState<TestState>({
     currentQuestion: 0,
-    answers: new Array(itQuestions.length).fill(-1),
+    answers: [],
     score: 0,
     isCompleted: false,
     timeRemaining: 1200 // 20 minutes in seconds
@@ -20,6 +24,68 @@ const ITTest: React.FC = () => {
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showNotification } = useNotification();
+
+  // Fetch questions on component mount
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const result = await testQuestionService.getQuestions('IT');
+        if (result.success && result.data && Array.isArray(result.data)) {
+          if (result.data.length > 0) {
+            setQuestions(result.data);
+            setTestState(prev => ({
+              ...prev,
+              answers: new Array(result.data?.length ?? 0).fill(-1)
+            }));
+          } else {
+            // Load default questions if none exist in backend
+            setQuestions(itQuestions.map(q => ({
+              id: q.id,
+              question: q.question,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              testType: 'IT' as const
+            })));
+            setTestState(prev => ({
+              ...prev,
+              answers: new Array(itQuestions.length).fill(-1)
+            }));
+          }
+        } else {
+          // Load default questions on error
+          setQuestions(itQuestions.map(q => ({
+            id: q.id,
+            question: q.question,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            testType: 'IT' as const
+          })));
+          setTestState(prev => ({
+            ...prev,
+            answers: new Array(itQuestions.length).fill(-1)
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+        // Load default questions on error
+        setQuestions(itQuestions.map(q => ({
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          testType: 'IT' as const
+        })));
+        setTestState(prev => ({
+          ...prev,
+          answers: new Array(itQuestions.length).fill(-1)
+        }));
+      } finally {
+        // Loading completed
+      }
+    };
+
+    fetchQuestions();
+  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -54,7 +120,8 @@ const ITTest: React.FC = () => {
   };
 
   const handleNextQuestion = () => {
-    if (testState.currentQuestion < itQuestions.length - 1) {
+    const totalQuestions = questions.length > 0 ? questions.length : itQuestions.length;
+    if (testState.currentQuestion < totalQuestions - 1) {
       setTestState(prev => ({
         ...prev,
         currentQuestion: prev.currentQuestion + 1
@@ -72,8 +139,9 @@ const ITTest: React.FC = () => {
   };
 
   const handleSubmitTest = () => {
+    const currentQuestions = questions.length > 0 ? questions : itQuestions;
     const score = testState.answers.reduce((acc, answer, index) => {
-      return answer === itQuestions[index].correctAnswer ? acc + 1 : acc;
+      return answer === currentQuestions[index].correctAnswer ? acc + 1 : acc;
     }, 0);
 
     setTestState(prev => ({
@@ -85,9 +153,10 @@ const ITTest: React.FC = () => {
   };
 
   const handleRestartTest = () => {
+    const totalQuestions = questions.length > 0 ? questions.length : itQuestions.length;
     setTestState({
       currentQuestion: 0,
-      answers: new Array(itQuestions.length).fill(-1),
+      answers: new Array(totalQuestions).fill(-1),
       score: 0,
       isCompleted: false,
       timeRemaining: 1200
@@ -113,7 +182,7 @@ const ITTest: React.FC = () => {
         email: email.trim(),
         name: name.trim(),
         score: testState.score,
-        totalQuestions: itQuestions.length,
+        totalQuestions: totalQuestions,
         timeTaken: 1200 - testState.timeRemaining,
         testType: 'IT'
       });
@@ -139,8 +208,20 @@ const ITTest: React.FC = () => {
   };
 
 
-  const currentQuestion = itQuestions[testState.currentQuestion];
+  const currentQuestions = questions.length > 0 ? questions : itQuestions;
+  const totalQuestions = currentQuestions.length;
+  const currentQuestion = currentQuestions[testState.currentQuestion];
   const answeredQuestions = testState.answers.filter(answer => answer !== -1).length;
+
+  // Transform TestQuestion to Question format for QuestionCard
+  const questionForCard = {
+    id: currentQuestion.id,
+    question: currentQuestion.question,
+    options: currentQuestion.options,
+    correctAnswer: currentQuestion.correctAnswer,
+    category: currentQuestion.category || 'General',
+    difficulty: currentQuestion.difficulty || 'Medium'
+  };
 
   if (showResults) {
     return (
@@ -154,12 +235,12 @@ const ITTest: React.FC = () => {
             </div>
             
             <div className="space-y-8 mb-12">
-              <div className={`text-8xl font-bold ${getScoreColor(testState.score, itQuestions.length)} drop-shadow-lg`}>
-                {testState.score}/{itQuestions.length}
+              <div className={`text-8xl font-bold ${getScoreColor(testState.score, totalQuestions)} drop-shadow-lg`}>
+                {testState.score}/{totalQuestions}
               </div>
               <div className="space-y-3">
                 <div className="text-3xl font-semibold text-gray-800">
-                  {Math.round((testState.score / itQuestions.length) * 100)}% Score
+                  {Math.round((testState.score / totalQuestions) * 100)}% Score
                 </div>
                 <div className="text-lg text-gray-600">
                   Time taken: {formatTime(1200 - testState.timeRemaining)}
@@ -173,7 +254,7 @@ const ITTest: React.FC = () => {
                 <div className="text-green-700 text-lg font-medium">Correct Answers</div>
               </div>
               <div className="bg-gradient-to-br from-red-100/60 to-rose-100/60 border border-red-300/50 p-8 rounded-2xl">
-                <div className="text-red-600 text-4xl font-bold mb-2">{itQuestions.length - testState.score}</div>
+                <div className="text-red-600 text-4xl font-bold mb-2">{totalQuestions - testState.score}</div>
                 <div className="text-red-700 text-lg font-medium">Incorrect Answers</div>
               </div>
             </div>
@@ -262,7 +343,7 @@ const ITTest: React.FC = () => {
             </div>
             <div className="!mr-3 flex items-center gap-8">
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{answeredQuestions}/{itQuestions.length}</div>
+                <div className="text-2xl font-bold text-gray-800">{answeredQuestions}/{totalQuestions}</div>
                 <div className="text-gray-600 text-sm">Progress</div>
               </div>
               <div className={`text-center ${
@@ -278,10 +359,10 @@ const ITTest: React.FC = () => {
           
           {/* Progress Bar */}
           <div className="bg-gradient-to-r from-[#DEE791] to-[#A3DC9A] rounded-full h-3 overflow-hidden">
-            <div 
+            <div
               className="h-3 rounded-full transition-all duration-500 ease-out"
-              style={{ 
-                width: `${(answeredQuestions / itQuestions.length) * 100}%`,
+              style={{
+                width: `${(answeredQuestions / totalQuestions) * 100}%`,
                 backgroundColor: '#8AA624'
               }}
             />
@@ -292,11 +373,11 @@ const ITTest: React.FC = () => {
       {/* Question */}
       <div className="w-[1000px] mb-8">
         <QuestionCard
-          question={currentQuestion}
+          question={questionForCard}
           selectedAnswer={testState.answers[testState.currentQuestion]}
           onAnswerSelect={handleAnswerSelect}
           questionNumber={testState.currentQuestion + 1}
-          totalQuestions={itQuestions.length}
+          totalQuestions={totalQuestions}
         />
       </div>
 
@@ -314,7 +395,7 @@ const ITTest: React.FC = () => {
             </button>
 
             <div className="flex gap-3 flex-wrap justify-center">
-              {itQuestions.map((_, index) => (
+              {currentQuestions.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setTestState(prev => ({ ...prev, currentQuestion: index }))}
@@ -338,7 +419,7 @@ const ITTest: React.FC = () => {
               ))}
             </div>
 
-            {testState.currentQuestion === itQuestions.length - 1 ? (
+            {testState.currentQuestion === totalQuestions - 1 ? (
               <button
                 onClick={handleSubmitTest}
                 className="!px-2 !py-3 text-white rounded-xl transition-all duration-300 text-lg font-medium shadow-lg hover:scale-105 cursor-pointer"

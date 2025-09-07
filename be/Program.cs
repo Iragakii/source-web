@@ -23,6 +23,9 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ITestResultService, TestResultService>();
 builder.Services.AddScoped<IDataSeedService, DataSeedService>();
 
+// Register TestQuestionService and interface
+builder.Services.AddScoped<WebComingAPI.Services.ITestQuestionService, WebComingAPI.Services.TestQuestionService>();
+
 // Configure JWT authentication
 var jwtSettings = builder.Configuration.GetSection("JWT");
 var secretKey = jwtSettings["SecretKey"];
@@ -100,6 +103,7 @@ using (var scope = app.Services.CreateScope())
     var seedService = scope.ServiceProvider.GetRequiredService<IDataSeedService>();
     await seedService.SeedCoursesAsync();
     await seedService.SeedVideosAsync();
+    await seedService.SeedDefaultQuestionsAsync();
 }
 
 app.Run();

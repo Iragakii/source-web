@@ -5,11 +5,12 @@ import BackGroundLogin from "../LoginPage/BackGroundLogin";
 import CourseManagement from "./CourseManagement";
 import VideoManagement from "./VideoManagement";
 import UserManagement from "./UserManagement";
+import TestQuestionManagement from "./TestQuestionManagement";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<"courses" | "videos" | "users">("courses");
+  const [activeTab, setActiveTab] = useState<"courses" | "videos" | "users" | "questions">("courses");
 
   // Debug logging
   console.log("=== ADMIN DASHBOARD DEBUG ===");
@@ -108,7 +109,7 @@ const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-center space-x-1 p-4">
             <button
               onClick={() => setActiveTab("courses")}
-              className={`font-mono py-2 px-6 rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+              className={`font-mono py-2 text-nowrap rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
                 activeTab === "courses"
                   ? "bg-[#61dca3] text-black border-2 border-[#61dca3]"
                   : "bg-transparent border-2 border-[#61dca3] text-[#61dca3] hover:bg-[#61dca3] hover:text-black"
@@ -118,7 +119,7 @@ const AdminDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab("videos")}
-              className={`font-mono py-2 px-6 rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+              className={`font-mono py-2  text-nowrap rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
                 activeTab === "videos"
                   ? "!bg-[#211C6A] !text-black border-2 !border-[#211C6A]"
                   : "bg-[#B4E4FF] border-2 border-[#13005A] text-[#13005A] hover:bg-[#61b3dc] hover:text-black"
@@ -128,13 +129,23 @@ const AdminDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab("users")}
-              className={`font-mono py-2 px-6 rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+              className={`font-mono py-2 text-nowrap rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
                 activeTab === "users"
                   ? "bg-[#2b4539] text-[#61dca3] border-2 border-[#2b4539]"
                   : "bg-transparent border-2 border-[#2b4539] text-[#2b4539] hover:bg-[#2b4539] hover:text-[#61dca3]"
               }`}
             >
               [ USERS ]
+            </button>
+            <button
+              onClick={() => setActiveTab("questions")}
+              className={`font-mono py-2 text-nowrap rounded transition-all duration-300 cursor-pointer transform hover:scale-105 ${
+                activeTab === "questions"
+                  ? "bg-[#FF6B35] text-black border-2 border-[#FF6B35]"
+                  : "border-2 border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35] hover:text-black"
+              }`}
+            >
+              [ QUESTIONS ]
             </button>
           </div>
         </div>
@@ -146,6 +157,7 @@ const AdminDashboard: React.FC = () => {
             {activeTab === "courses" && <CourseManagement />}
             {activeTab === "videos" && <VideoManagement />}
             {activeTab === "users" && <UserManagement />}
+            {activeTab === "questions" && <TestQuestionManagement />}
           </div>
         </div>
       </section>

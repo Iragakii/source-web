@@ -270,7 +270,7 @@ const CourseManagement: React.FC = () => {
                 {itCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="bg-black/50 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
+                    className="bg-black/90 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
                   >
                     <img
                       src={course.imageUrl}
@@ -321,7 +321,7 @@ const CourseManagement: React.FC = () => {
                 {cyberCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="bg-black/50 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
+                    className="bg-black/90 border border-[#2b4539] rounded-lg p-4 hover:border-[#61dca3] transition-all duration-300"
                   >
                     <img
                       src={course.imageUrl}

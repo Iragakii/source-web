@@ -16,5 +16,6 @@ namespace WebComingAPI.Services
         Task<VideoLesson> CreateVideoLessonAsync(VideoLesson videoLesson);
         Task<VideoLesson> UpdateVideoLessonAsync(VideoLesson videoLesson);
         Task DeleteVideoLessonAsync(string id);
+        Task<CourseRegistration> RegisterForCourseAsync(CourseRegistration registration);
     }
 }

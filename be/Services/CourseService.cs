@@ -179,5 +179,22 @@ namespace WebComingAPI.Services
                 throw;
             }
         }
+
+        // Course registration methods
+        public async Task<CourseRegistration> RegisterForCourseAsync(CourseRegistration registration)
+        {
+            try
+            {
+                _logger.LogInformation("Registering user for course: {CourseId}", registration.CourseId);
+                await _context.CourseRegistrations.InsertOneAsync(registration);
+                _logger.LogInformation("Successfully registered user for course: {RegistrationId}", registration.Id);
+                return registration;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error registering for course");
+                throw;
+            }
+        }
     }
 }

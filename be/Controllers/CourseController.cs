@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebComingAPI.Models;
 using WebComingAPI.Services;
 using WebComingAPI.DTOs;
+using MongoDB.Bson;
 
 namespace WebComingAPI.Controllers
 {
@@ -26,7 +27,7 @@ namespace WebComingAPI.Controllers
             {
                 _logger.LogInformation("Retrieving all courses");
                 var courses = await _courseService.GetAllCoursesAsync();
-                
+
                 return Ok(new ApiResponse<List<Course>>
                 {
                     Success = true,
@@ -135,7 +136,7 @@ namespace WebComingAPI.Controllers
                 };
 
                 var createdCourse = await _courseService.CreateCourseAsync(course);
-                return CreatedAtAction(nameof(GetCourseById), new { id = createdCourse.Id }, 
+                return CreatedAtAction(nameof(GetCourseById), new { id = createdCourse.Id },
                     new ApiResponse<Course>
                     {
                         Success = true,
@@ -231,6 +232,100 @@ namespace WebComingAPI.Controllers
                 {
                     Success = false,
                     Message = $"Error deleting course: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("register")]
+        public async Task<ActionResult<ApiResponse<CourseRegistrationResponse>>> RegisterForCourse([FromBody] CourseRegistrationRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    return BadRequest(new ApiResponse<CourseRegistrationResponse>
+                    {
+                        Success = false,
+                        Message = "Validation failed",
+                        Errors = errors
+                    });
+                }
+
+                // Find the course by title (since frontend sends courseName as title)
+                var allCourses = await _courseService.GetAllCoursesAsync();
+
+                // Create a mapping for frontend course names to actual course titles
+                var courseNameMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "IT Fundamentals", "Foundations of Information Technology" },
+                    { "Web Development", "Web Development & Deployment" },
+                    { "Data Science", "Database Management with SQL & NoSQL" },
+                    { "Cybersecurity", "Introduction to Cybersecurity" },
+                    { "Cloud Computing", "Cloud Computing Fundamentals" }
+                };
+
+                string actualCourseTitle = request.CourseName;
+                if (courseNameMapping.ContainsKey(request.CourseName))
+                {
+                    actualCourseTitle = courseNameMapping[request.CourseName];
+                }
+
+                var course = allCourses.FirstOrDefault(c => c.Title.ToLower() == actualCourseTitle.ToLower());
+                if (course == null)
+                {
+                    return BadRequest(new ApiResponse<CourseRegistrationResponse>
+                    {
+                        Success = false,
+                        Message = $"Course '{request.CourseName}' not found. Available courses: {string.Join(", ", allCourses.Select(c => c.Title))}"
+                    });
+                }
+
+                var registration = new CourseRegistration
+                {
+                    Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
+                    UserId = "", // For public registration, we don't have a user ID
+                    CourseId = course.Id!,
+                    RegistrationDate = DateTime.UtcNow,
+                    Status = "Active",
+                    Progress = 0,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var result = await _courseService.RegisterForCourseAsync(registration);
+
+                var response = new CourseRegistrationResponse
+                {
+                    Id = result.Id,
+                    StudentName = request.StudentName,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    CourseName = request.CourseName,
+                    Experience = request.Experience,
+                    Notes = request.Notes,
+                    RegistrationDate = result.RegistrationDate,
+                    Status = result.Status
+                };
+
+                return Ok(new ApiResponse<CourseRegistrationResponse>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Course registration successful"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error registering for course");
+                return StatusCode(500, new ApiResponse<CourseRegistrationResponse>
+                {
+                    Success = false,
+                    Message = "Internal server error"
                 });
             }
         }
