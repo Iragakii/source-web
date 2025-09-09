@@ -247,5 +247,46 @@ namespace WebComingAPI.Services
                 };
             }
         }
+
+        public async Task<ApiResponse<bool>> CheckTestPassStatusAsync(string email)
+        {
+            try
+            {
+                var testResults = await _context.TestResults
+                    .Find(tr => tr.Email == email.ToLower().Trim() && tr.IsActive && tr.TestType == "IT")
+                    .SortByDescending(tr => tr.SubmittedAt)
+                    .ToListAsync();
+
+                if (testResults.Count == 0)
+                {
+                    return new ApiResponse<bool>
+                    {
+                        Success = true,
+                        Data = false,
+                        Message = "No IT test results found for this email."
+                    };
+                }
+
+                // Check if the latest test result has score >= 10
+                var latestResult = testResults.First();
+                bool hasPassed = latestResult.Score >= 10;
+
+                return new ApiResponse<bool>
+                {
+                    Success = true,
+                    Data = hasPassed,
+                    Message = hasPassed ? "User has passed the IT test." : "User has not passed the IT test."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking test pass status for {Email}", email);
+                return new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "An error occurred while checking test pass status."
+                };
+            }
+        }
     }
 }

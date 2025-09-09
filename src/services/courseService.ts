@@ -108,6 +108,23 @@ class CourseService {
     }
   }
 
+  async getCoursesByCategory(category: string): Promise<ApiResponse<Course[]>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/courses/category/${category}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Get courses by category error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred while fetching courses by category',
+      };
+    }
+  }
+
   async getCourseById(id: string): Promise<ApiResponse<Course>> {
     try {
       const response = await fetch(`${API_BASE_URL}/courses/${id}`, {

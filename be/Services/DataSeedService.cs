@@ -9,10 +9,12 @@ namespace WebComingAPI.Services
     public class DataSeedService : IDataSeedService
     {
         private readonly MongoDbContext _context;
+        private readonly CourseDataSeedService _courseDataSeedService;
 
-        public DataSeedService(MongoDbContext context)
+        public DataSeedService(MongoDbContext context, CourseDataSeedService courseDataSeedService)
         {
             _context = context;
+            _courseDataSeedService = courseDataSeedService;
         }
 
         public async Task SeedDefaultQuestionsAsync()
@@ -256,16 +258,12 @@ namespace WebComingAPI.Services
 
         public async Task SeedCoursesAsync()
         {
-            // Implementation for seeding courses
-            // This method is required by the interface
-            await Task.CompletedTask;
+            await _courseDataSeedService.SeedCoursesAsync();
         }
 
         public async Task SeedVideosAsync()
         {
-            // Implementation for seeding videos
-            // This method is required by the interface
-            await Task.CompletedTask;
+            await _courseDataSeedService.SeedVideosAsync();
         }
 
         public async Task ReseedAllDataAsync()
@@ -283,7 +281,7 @@ namespace WebComingAPI.Services
         {
             // Clear all collections
             await _context.TestQuestions.DeleteManyAsync(FilterDefinition<TestQuestion>.Empty);
-            // Note: Add other collections as needed (Courses, Videos, etc.)
+            await _courseDataSeedService.ClearAllDataAsync();
         }
     }
 }

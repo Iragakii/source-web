@@ -79,29 +79,38 @@ namespace WebComingAPI.Controllers
             }
         }
 
-        [HttpGet("category/{category}")]
-        public async Task<ActionResult<ApiResponse<List<Course>>>> GetCoursesByCategory(string category)
+[HttpGet("category/{category}")]
+public async Task<ActionResult<ApiResponse<List<Course>>>> GetCoursesByCategory(string category)
+{
+    try
+    {
+        var courses = await _courseService.GetCoursesByCategoryAsync(category);
+        if (category.ToLower() == "it" && (courses == null || courses.Count == 0))
         {
-            try
+            return Ok(new ApiResponse<List<Course>>
             {
-                var courses = await _courseService.GetCoursesByCategoryAsync(category);
-                return Ok(new ApiResponse<List<Course>>
-                {
-                    Success = true,
-                    Data = courses,
-                    Message = $"Retrieved {courses.Count} courses in {category} category"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving courses by category {Category}", category);
-                return StatusCode(500, new ApiResponse<List<Course>>
-                {
-                    Success = false,
-                    Message = $"Error retrieving courses: {ex.Message}"
-                });
-            }
+                Success = false,
+                Data = null,
+                Message = "No IT courses available"
+            });
         }
+        return Ok(new ApiResponse<List<Course>>
+        {
+            Success = true,
+            Data = courses,
+            Message = $"Retrieved {courses.Count} courses in {category} category"
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error retrieving courses by category {Category}", category);
+        return StatusCode(500, new ApiResponse<List<Course>>
+        {
+            Success = false,
+            Message = $"Error retrieving courses: {ex.Message}"
+        });
+    }
+}
 
         [HttpPost]
         [Authorize(Roles = "admin")]

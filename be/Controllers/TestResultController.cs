@@ -43,18 +43,55 @@ namespace WebComingAPI.Controllers
                 }
 
                 var result = await _testResultService.SubmitTestResultAsync(request);
-                
+
                 if (result.Success)
                 {
                     return Ok(result);
                 }
-                
+
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in SubmitTestResult endpoint");
                 return StatusCode(500, new ApiResponse<TestResultResponse>
+                {
+                    Success = false,
+                    Message = "An internal server error occurred"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Check if user has passed IT test with minimum score 10/16
+        /// </summary>
+        [HttpGet("check-pass-status/{email}")]
+        public async Task<ActionResult<ApiResponse<bool>>> CheckTestPassStatus(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Email is required"
+                    });
+                }
+
+                var result = await _testResultService.CheckTestPassStatusAsync(email);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CheckTestPassStatus endpoint for {Email}", email);
+                return StatusCode(500, new ApiResponse<bool>
                 {
                     Success = false,
                     Message = "An internal server error occurred"
@@ -80,12 +117,12 @@ namespace WebComingAPI.Controllers
                 }
 
                 var result = await _testResultService.GetTestResultsByEmailAsync(email);
-                
+
                 if (result.Success)
                 {
                     return Ok(result);
                 }
-                
+
                 return BadRequest(result);
             }
             catch (Exception ex)
@@ -117,12 +154,12 @@ namespace WebComingAPI.Controllers
                 }
 
                 var result = await _testResultService.GetTestResultByIdAsync(id);
-                
+
                 if (result.Success)
                 {
                     return Ok(result);
                 }
-                
+
                 return NotFound(result);
             }
             catch (Exception ex)
@@ -142,7 +179,7 @@ namespace WebComingAPI.Controllers
         [HttpGet("all")]
         [Authorize] // In a real app, you'd add role-based authorization here
         public async Task<ActionResult<ApiResponse<GetTestResultsResponse>>> GetAllTestResults(
-            [FromQuery] int page = 1, 
+            [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
             try
@@ -151,12 +188,12 @@ namespace WebComingAPI.Controllers
                 if (pageSize < 1 || pageSize > 100) pageSize = 10;
 
                 var result = await _testResultService.GetAllTestResultsAsync(page, pageSize);
-                
+
                 if (result.Success)
                 {
                     return Ok(result);
                 }
-                
+
                 return BadRequest(result);
             }
             catch (Exception ex)
@@ -189,12 +226,12 @@ namespace WebComingAPI.Controllers
                 }
 
                 var result = await _testResultService.DeleteTestResultAsync(id);
-                
+
                 if (result.Success)
                 {
                     return Ok(result);
                 }
-                
+
                 return BadRequest(result);
             }
             catch (Exception ex)

@@ -22,6 +22,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ITestResultService, TestResultService>();
 builder.Services.AddScoped<IDataSeedService, DataSeedService>();
+builder.Services.AddScoped<CourseDataSeedService>();
 
 // Register TestQuestionService and interface
 builder.Services.AddScoped<WebComingAPI.Services.ITestQuestionService, WebComingAPI.Services.TestQuestionService>();

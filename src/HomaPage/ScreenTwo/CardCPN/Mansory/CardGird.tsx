@@ -29,7 +29,7 @@ const MediaGrid = () => {
         if (response.success && response.data) {
           // Filter for IT courses only (category: "IT")
           const itCourses = response.data.filter(course => 
-            course.category === "IT" && course.isActive
+            course.category.trim().toLowerCase() === "it" && course.isActive
           );
           setCourses(itCourses);
         } else {

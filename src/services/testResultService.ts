@@ -129,6 +129,34 @@ class TestResultService {
       };
     }
   }
+
+  async checkTestPassStatus(email: string): Promise<ApiResponse<boolean>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/testresult/check-pass-status/${encodeURIComponent(email)}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Failed to check test pass status',
+          errors: data.errors || []
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Check test pass status error:', error);
+      return {
+        success: false,
+        message: 'Network error occurred. Please try again.',
+        errors: []
+      };
+    }
+  }
 }
 
 export const testResultService = new TestResultService();

@@ -169,14 +169,14 @@ const ITTest: React.FC = () => {
 
   const handleSubmitResult = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim() || !name.trim()) {
       showNotification('Please fill in all fields', 'error');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const result = await testResultService.submitTestResult({
         email: email.trim(),
@@ -188,7 +188,13 @@ const ITTest: React.FC = () => {
       });
 
       if (result.success) {
-        showNotification('Test result submitted successfully!', 'success');
+        // Check if user passed the test (score >= 10)
+        const hasPassed = testState.score >= 10;
+        if (hasPassed) {
+          showNotification('Test result submitted successfully! You have passed and can now access videos.', 'success');
+        } else {
+          showNotification('Test result submitted successfully! However, you need at least 10/16 correct answers to access videos.', 'warning');
+        }
         setShowEmailForm(false);
       } else {
         showNotification(result.message || 'Failed to submit test result', 'error');

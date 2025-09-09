@@ -10,5 +10,6 @@ namespace WebComingAPI.Services
         Task<ApiResponse<TestResultResponse>> GetTestResultByIdAsync(string id);
         Task<ApiResponse<GetTestResultsResponse>> GetAllTestResultsAsync(int page = 1, int pageSize = 10);
         Task<ApiResponse<bool>> DeleteTestResultAsync(string id);
+        Task<ApiResponse<bool>> CheckTestPassStatusAsync(string email);
     }
 }
